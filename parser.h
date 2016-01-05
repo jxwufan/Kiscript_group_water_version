@@ -288,4 +288,6 @@ DECLARE_TOKEN_GET_ID_FUNC(error)
 
 DECLARE_TOKEN_IS_TOKEN_WITH_ID_FUNC(error)
 
+char *error_get_id_name(token_t *error);
+
 #endif //KISCRIPT_PARSER_H
