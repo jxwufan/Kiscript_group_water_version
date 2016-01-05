@@ -18,7 +18,7 @@ typedef struct _activation_record {
 activation_record_t *activation_record_new(activation_record_t *dynamic_link, activation_record_t *static_link);
 activation_record_t *activation_record_clone(activation_record_t *origin);
 
-void *activation_record_reach_end_of_scope(activation_record_t *AR);
+void activation_record_reach_end_of_scope(activation_record_t *AR);
 
 
 

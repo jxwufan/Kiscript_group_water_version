@@ -26,6 +26,7 @@ typedef struct {
     activation_record_t *AR;
 } variable_t;
 
+void variable_out_of_scope(variable_t *variable);
 
 
 #endif //KISCRIPT_VARIABLE_H

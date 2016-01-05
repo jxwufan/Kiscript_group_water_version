@@ -26,8 +26,8 @@ activation_record_t *activation_record_clone(activation_record_t *origin) {
     return NULL;
 }
 
-void *activation_record_reach_end_of_scope(activation_record_t *AR) {
-    g_hash_table_unref(AR);
+void activation_record_reach_end_of_scope(activation_record_t *AR) {
+    g_hash_table_unref(AR->AR_hash_table);
 
     return;
 }
