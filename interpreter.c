@@ -32,5 +32,12 @@ gboolean is_lexical(token_t *token) {
 }
 
 gboolean is_expression(token_t *token) {
-    return token->id == TOKEN_EXPRESSION_ADDITIVE_EXPRESSION;
+    return token->id == TOKEN_EXPRESSION_ADDITIVE_EXPRESSION    ||
+           token->id == TOKEN_EXPRESSION_EQUALITY_EXPRESSION    ||
+           token->id == TOKEN_EXPRESSION_CALL_EXPRESSION;//        ||
+//           token->id == TOKEN_EXPRESSION_ARGUMENT_LIST;
+}
+
+gboolean is_statement(token_t *token) {
+    return FALSE;
 }
