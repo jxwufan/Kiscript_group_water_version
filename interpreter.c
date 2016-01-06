@@ -10,10 +10,10 @@ return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) 
 }
 
 return_struct_t *evaluate_program(token_t *program_token, activation_record_t *AR_parent) {
-    activation_record_t *AR = activation_record_new(AR_parent);
+//    activation_record_t *AR = activation_record_new(AR_parent);
     for (guint i  = 0; i < program_token->children->len; ++i) {
-        return_struct_t *return_struct = return_struct_new();
-        return_struct = evaluate_token(token_get_child(program_token, i), AR);
+//        return_struct_t *return_struct = return_struct_new();
+//        return_struct = evaluate_token(token_get_child(program_token, i), AR);
     }
     return NULL;
 }
