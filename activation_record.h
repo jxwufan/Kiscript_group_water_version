@@ -9,8 +9,8 @@
 #include <gc.h>
 
 typedef struct _activation_record {
-    struct _activation_record *link;
-    GHashTable              *AR_hash_table;
+    struct _activation_record   *link;
+    GHashTable                  *AR_hash_table;
 } activation_record_t;
 
 

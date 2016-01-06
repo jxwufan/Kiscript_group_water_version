@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <gc.h>
 
 #include "lexical_parser.h"
 #include "syntactic_parser.h"
@@ -13,9 +14,17 @@
 
 int main() {
 
-    char *input = NULL;
+    char *input = (char *) GC_malloc(sizeof(char) * 5000);
     size_t input_length = 0;
-    getline(&input, &input_length, stdin);
+    int data;
+    while((data = getchar()) != EOF) {
+        input[input_length++] = data;
+    }
+    input[input_length] = '\0';
+
+    printf("%s", input);
+
+//    getline(&input, &input_length, stdin);
     if (errno) {
         perror("getline");
         g_free(input);
