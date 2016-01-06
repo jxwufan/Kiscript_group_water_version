@@ -12,8 +12,11 @@
 #include "syntactic_parser.h"
 #include "parser.h"
 #include "interpreter.h"
+#include "variable.h"
 
 int main() {
+    GC_INIT();
+
     FILE *fi = fopen("./test.js", "r");
 
     char *input = (char *) g_malloc(sizeof(char) * 5000);
@@ -72,6 +75,10 @@ int main() {
     printf("\n");
     printf("Hello, KiScript!\n");
 
-    printf(variable_to_string(test_variable));
+    variable_t *test_variable = GC_malloc(sizeof(variable_t));
+    test_variable->variable_type = VARIABLE_NUMERICAL;
+    gdouble tmp = -10.1;
+    test_variable->variable_data = &tmp;
+    printf("%s\n", variable_to_string(test_variable));
     return EXIT_SUCCESS;
 }
