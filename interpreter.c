@@ -6,6 +6,13 @@
 #include "parser.h"
 
 return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) {
+    if (is_lexical(token)) {
+        return evaluate_lexicial(token, AR_parent);
+//    } else if (is_expression(token)) {
+//        return evaluate_expression(token, AR_parent);
+//    } else if (is_statement(token)) {
+//        return evaluate_expression(token, AR_parent);
+    }
     return NULL;
 }
 
@@ -40,4 +47,8 @@ gboolean is_expression(token_t *token) {
 
 gboolean is_statement(token_t *token) {
     return FALSE;
+}
+
+return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *AR_Parent) {
+    return NULL;
 }
