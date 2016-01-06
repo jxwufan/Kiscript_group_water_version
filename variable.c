@@ -32,7 +32,7 @@ variable_t *variable_clone(variable_t *variable) {
     return NULL;
 }
 
-void *variable_on_destory(variable_t *variable) {
+void variable_on_destory(variable_t *variable) {
     if (variable->variable_type == VARIABLE_FUNC) {
         g_hash_table_unref(variable->AR->AR_hash_table);
     }

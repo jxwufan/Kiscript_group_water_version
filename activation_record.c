@@ -55,7 +55,7 @@ gboolean activation_record_declare(activation_record_t *AR, gchar *key) {
 
 gpointer activation_record_lookup(activation_record_t *AR, gchar *key) {
     while (AR != NULL) {
-        if (g_hash_table_contains(AR, key)) {
+        if (g_hash_table_contains(AR->AR_hash_table, key)) {
             return g_hash_table_lookup(AR->AR_hash_table, key);
         } else {
             AR = AR->link;
