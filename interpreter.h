@@ -11,6 +11,7 @@
 typedef enum {
     EXCEPTION,
     CONTINUE,
+    BREAK
 } return_staus_t;
 
 typedef struct {
@@ -18,6 +19,8 @@ typedef struct {
     variable_t      *mid_varible;
     variable_t      *end_varible;
 } return_struct_t;
+
+return_struct_t *return_struct_new();
 
 return_struct_t *evaluate_token     (token_t *token,            activation_record_t *AR_parent);
 return_struct_t *evaluate_lexcial   (token_t *lexical_token,    activation_record_t *AR_Parent);

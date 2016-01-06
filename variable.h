@@ -26,6 +26,8 @@ typedef struct {
     activation_record_t *AR;
 } variable_t;
 
+variable_t *variable_new(variable_type_t variable_type, gpointer *variable_data, GHashTable *attribute_hash_table, activation_record_t *AR);
+
 void variable_out_of_scope(variable_t *variable);
 
 

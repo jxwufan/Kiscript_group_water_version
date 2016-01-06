@@ -10,27 +10,6 @@
 #include "lexical_parser.h"
 #include "syntactic_parser.h"
 #include "parser.h"
-#include "id_string.h"
-
-void print_program_tree(token_t *current_token, gint deepth) {
-    if (current_token == NULL)
-        return;
-    for (gint i = 0; i < deepth; ++i) {
-        printf("\t");
-    }
-    printf("%s ", token_type_str[current_token->id]);
-    if (current_token->id == TOKEN_LEXICAL_IDENTIFIER) {
-        printf("%s\n", identifier_get_value(current_token)->str);
-    } else if (current_token->id == TOKEN_LEXICAL_PUNCTUATOR) {
-        printf("%s\n", punctuator_type_str[*punctuator_get_id(current_token)]);
-    } else {
-        printf("\n");
-    }
-
-    for (gint i = 0; i < current_token->children->len; ++i) {
-        print_program_tree((token_t*) (current_token->children->pdata[i]), deepth + 1);
-    }
-}
 
 int main() {
 
