@@ -11,20 +11,19 @@
 #include "lexical_parser.h"
 #include "syntactic_parser.h"
 #include "parser.h"
+#include "interpreter.h"
 
 int main() {
+    FILE *fi = fopen("./test.js", "r");
 
-    char *input = (char *) GC_malloc(sizeof(char) * 5000);
+    char *input = (char *) g_malloc(sizeof(char) * 5000);
     size_t input_length = 0;
     int data;
-    while((data = getchar()) != EOF) {
+    while((data = fgetc(fi)) != EOF) {
         input[input_length++] = data;
     }
     input[input_length] = '\0';
 
-    printf("%s", input);
-
-//    getline(&input, &input_length, stdin);
     if (errno) {
         perror("getline");
         g_free(input);
@@ -63,6 +62,8 @@ int main() {
         return EXIT_FAILURE;
     }
 
+//    evaluate_program(program_or_error, NULL);
+
     GString *program_string = token_to_string(program_or_error);
     printf("%s", program_string->str);
     g_string_free(program_string, TRUE);
@@ -70,6 +71,7 @@ int main() {
 
     printf("\n");
     printf("Hello, KiScript!\n");
+
 
     return EXIT_SUCCESS;
 }
