@@ -55,3 +55,15 @@ gchar* variable_to_string(variable_t *variable) {
 
     return str;
 }
+
+void variable_free(variable_t *variable) {
+    if (variable->variable_data != NULL) {
+        GC_FREE(variable->variable_data);
+    }
+    if (variable->AR != NULL) {
+        g_hash_table_unref(variable->AR->AR_hash_table);
+    }
+    if (variable->attribute_hash_table != NULL) {
+        g_hash_table_unref(variable->attribute_hash_table);
+    }
+}
