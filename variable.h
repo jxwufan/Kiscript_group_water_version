@@ -26,10 +26,16 @@ typedef struct {
     activation_record_t *AR;
 } variable_t;
 
-variable_t *variable_new            (variable_type_t variable_type, gpointer *variable_data, GHashTable *attribute_hash_table, activation_record_t *AR);
-variable_t *variable_clone          (variable_t *variable)
+variable_t  *variable_new            (variable_type_t variable_type, gpointer *variable_data, GHashTable *attribute_hash_table, activation_record_t *AR);
+variable_t  *variable_clone          (variable_t *variable);
+
+void        *variable_on_destory    (variable_t *variable);
+gboolean    variable_free           (variable_t *variable);
+
 gchar*      variable_to_string      (variable_t *variable);
 gdouble     variable_to_numerical   (variable_t *variable);
+
+
 
 void variable_out_of_scope(variable_t *variable);
 
