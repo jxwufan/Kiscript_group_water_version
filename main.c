@@ -75,10 +75,5 @@ int main() {
     printf("\n");
     printf("Hello, KiScript!\n");
 
-    variable_t *test_variable = GC_malloc(sizeof(variable_t));
-    test_variable->variable_type = VARIABLE_NUMERICAL;
-    gdouble tmp = -10.1;
-    test_variable->variable_data = &tmp;
-    printf("%s\n", variable_to_string(test_variable));
     return EXIT_SUCCESS;
 }
