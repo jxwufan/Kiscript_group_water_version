@@ -517,6 +517,39 @@ DEFINE_TOKEN_IS_TOKEN_FUNC(identifier, TOKEN_LEXICAL_IDENTIFIER)
 
 DEFINE_TOKEN_GET_VALUE_FUNC(identifier, GString)
 
+static char *KEYWORD_ID_NAMES[] = {
+        "KEYWORD_WITH",
+        "KEYWORD_WHILE",
+        "KEYWORD_VOID",
+        "KEYWORD_VAR",
+        "KEYWORD_TYPEOF",
+        "KEYWORD_TRY",
+        "KEYWORD_THROW",
+        "KEYWORD_THIS",
+        "KEYWORD_SWITCH",
+        "KEYWORD_RETURN",
+        "KEYWORD_NEW",
+        "KEYWORD_INSTANCEOF",
+        "KEYWORD_IN",
+        "KEYWORD_IF",
+        "KEYWORD_FUNCTION",
+        "KEYWORD_FOR",
+        "KEYWORD_FINALLY",
+        "KEYWORD_ELSE",
+        "KEYWORD_DO",
+        "KEYWORD_DELETE",
+        "KEYWORD_DEFAULT",
+        "KEYWORD_DEBUGGER",
+        "KEYWORD_CONTINUE",
+        "KEYWORD_CATCH",
+        "KEYWORD_CASE",
+        "KEYWORD_BREAK",
+        "KEYWORD_GET",
+        "KEYWORD_SET"
+};
+
+DEFINE_ID_GET_NAME_FUNC(keyword_id, KEYWORD_ID_NAMES)
+
 static char *KEYWORDS[] = {
         "with",
         "while",
@@ -555,7 +588,9 @@ gboolean keyword_is_first(gchar *input) {
 
 static DEFINE_PRIMITIVE_NEW_FUNC(keyword_id)
 
-static DEFINE_PRIMITIVE_FUNC_FUNC(keyword_id)
+static DEFINE_PRIMITIVE_CLONE_FUNC_FUNC(keyword_id)
+
+static DEFINE_ID_TO_STRING_FUNC_FUNC(keyword_id)
 
 token_t *keyword(gchar **input_p) {
 
@@ -564,7 +599,8 @@ token_t *keyword(gchar **input_p) {
                                     &index)) {
         return token_new(TOKEN_LEXICAL_KEYWORD,
                          keyword_id_new((keyword_id_t) index),
-                         keyword_id_clone_func, NULL);
+                         keyword_id_clone_func, NULL,
+                         keyword_id_to_string_func);
     }
 
     return error_new_lexical(ERROR_LEXICAL_KEYWORD, *input_p);
@@ -577,6 +613,28 @@ DEFINE_TOKEN_GET_ID_FUNC(keyword)
 DEFINE_TOKEN_IS_TOKEN_WITH_ID_FUNC(keyword)
 
 // Strict mode
+
+static char *FUTURE_RESERVED_WORD_NAMES[] = {
+        "FUTURE_RESERVED_WORD_YIELD",
+        "FUTURE_RESERVED_WORD_SUPER",
+        "FUTURE_RESERVED_WORD_STATIC",
+        "FUTURE_RESERVED_WORD_PUBLIC",
+        "FUTURE_RESERVED_WORD_PROTECTED",
+        "FUTURE_RESERVED_WORD_PRIVATE",
+        "FUTURE_RESERVED_WORD_PACKAGE",
+        "FUTURE_RESERVED_WORD_LET",
+        "FUTURE_RESERVED_WORD_INTERFACE",
+        "FUTURE_RESERVED_WORD_IMPORT",
+        "FUTURE_RESERVED_WORD_IMPLEMENTS",
+        "FUTURE_RESERVED_WORD_EXTENDS",
+        "FUTURE_RESERVED_WORD_EXPORT",
+        "FUTURE_RESERVED_WORD_ENUM",
+        "FUTURE_RESERVED_WORD_CONST",
+        "FUTURE_RESERVED_WORD_CLASS"
+};
+
+DEFINE_ID_GET_NAME_FUNC(future_reserved_word_id, FUTURE_RESERVED_WORD_NAMES)
+
 static char *FUTURE_RESERVED_WORDS[] = {
         "yield",
         "super",
@@ -604,7 +662,9 @@ gboolean future_reserved_word_is_first(gchar *input) {
 
 static DEFINE_PRIMITIVE_NEW_FUNC(future_reserved_word_id)
 
-static DEFINE_PRIMITIVE_FUNC_FUNC(future_reserved_word_id)
+static DEFINE_PRIMITIVE_CLONE_FUNC_FUNC(future_reserved_word_id)
+
+static DEFINE_ID_TO_STRING_FUNC_FUNC(future_reserved_word_id)
 
 token_t *future_reserved_word(gchar **input_p) {
 
@@ -615,7 +675,8 @@ token_t *future_reserved_word(gchar **input_p) {
         return token_new(TOKEN_LEXICAL_FUTURE_RESERVED_WORD,
                          future_reserved_word_id_new(
                                  (future_reserved_word_id_t) index),
-                         future_reserved_word_id_clone_func, NULL);
+                         future_reserved_word_id_clone_func, NULL,
+                         future_reserved_word_id_to_string_func);
     }
 
     return error_new_lexical(ERROR_LEXICAL_FUTURE_RESERVED_WORD, *input_p);
@@ -627,6 +688,59 @@ DEFINE_TOKEN_IS_TOKEN_FUNC(future_reserved_word,
 DEFINE_TOKEN_GET_ID_FUNC(future_reserved_word)
 
 DEFINE_TOKEN_IS_TOKEN_WITH_ID_FUNC(future_reserved_word)
+
+static char *PUNCTUATOR_ID_NAMES[] = {
+        "PUNCTUATOR_INCREMENT",
+        "PUNCTUATOR_ADD_ASSIGNMENT",
+        "PUNCTUATOR_PLUS",
+        "PUNCTUATOR_MODULO_ASSIGNMENT",
+        "PUNCTUATOR_PERCENT",
+        "PUNCTUATOR_LOGICAL_AND",
+        "PUNCTUATOR_BITWISE_AND_ASSIGNMENT",
+        "PUNCTUATOR_AMPERSAND",
+        "PUNCTUATOR_MULTIPLY_ASSIGNMENT",
+        "PUNCTUATOR_ASTERISK",
+        "PUNCTUATOR_CURLY_BRACE_RIGHT",
+        "PUNCTUATOR_CURLY_BRACE_LEFT",
+        "PUNCTUATOR_SQUARE_BRACKET_RIGHT",
+        "PUNCTUATOR_SQUARE_BRACKET_LEFT",
+        "PUNCTUATOR_PARENTHESIS_RIGHT",
+        "PUNCTUATOR_PARENTHESIS_LEFT",
+        "PUNCTUATOR_DOT",
+        "PUNCTUATOR_DIVIDE_ASSIGNMENT",
+        "PUNCTUATOR_SLASH",
+        "PUNCTUATOR_QUESTION_MARK",
+        "PUNCTUATOR_STRICT_DOES_NOT_EQUAL",
+        "PUNCTUATOR_DOES_NOT_EQUAL",
+        "PUNCTUATOR_EXCLAMATION",
+        "PUNCTUATOR_COLON",
+        "PUNCTUATOR_SEMICOLON",
+        "PUNCTUATOR_COMMA",
+        "PUNCTUATOR_DECREMENT",
+        "PUNCTUATOR_SUBTRACT_ASSIGNMENT",
+        "PUNCTUATOR_MINUS",
+        "PUNCTUATOR_LOGICAL_OR",
+        "PUNCTUATOR_BITWISE_OR_ASSIGNMENT",
+        "PUNCTUATOR_VERTICAL_BAR",
+        "PUNCTUATOR_UNSIGNED_RIGHT_SHIFT_ASSIGNMENT",
+        "PUNCTUATOR_UNSIGNED_RIGHT_SHIFT",
+        "PUNCTUATOR_SIGNED_RIGHT_SHIFT_ASSIGNMENT",
+        "PUNCTUATOR_SIGNED_RIGHT_SHIFT",
+        "PUNCTUATOR_GREATER_THAN_OR_EQUAL",
+        "PUNCTUATOR_ANGLE_BRACKET_RIGHT",
+        "PUNCTUATOR_STRICT_EQUALS",
+        "PUNCTUATOR_EQUALS",
+        "PUNCTUATOR_EQUALS_SIGN",
+        "PUNCTUATOR_LESS_THAN_OR_EQUAL",
+        "PUNCTUATOR_LEFT_SHIFT_ASSIGNMENT",
+        "PUNCTUATOR_LEFT_SHIFT",
+        "PUNCTUATOR_ANGLE_BRACKET_LEFT",
+        "PUNCTUATOR_TILDE",
+        "PUNCTUATOR_BITWISE_XOR_ASSIGNMENT",
+        "PUNCTUATOR_CARET"
+};
+
+DEFINE_ID_GET_NAME_FUNC(punctuator_id, PUNCTUATOR_ID_NAMES)
 
 static char *PUNCTUATORS[] = {
         "++",
@@ -685,7 +799,9 @@ gboolean punctuator_is_first(gchar *input) {
 
 static DEFINE_PRIMITIVE_NEW_FUNC(punctuator_id)
 
-static DEFINE_PRIMITIVE_FUNC_FUNC(punctuator_id)
+static DEFINE_PRIMITIVE_CLONE_FUNC_FUNC(punctuator_id)
+
+static DEFINE_ID_TO_STRING_FUNC_FUNC(punctuator_id)
 
 token_t *punctuator(gchar **input_p) {
 
@@ -694,7 +810,8 @@ token_t *punctuator(gchar **input_p) {
                                     G_N_ELEMENTS(PUNCTUATORS), &index)) {
         return token_new(TOKEN_LEXICAL_PUNCTUATOR,
                          punctuator_id_new((punctuator_id_t) index),
-                         punctuator_id_clone_func, NULL);
+                         punctuator_id_clone_func, NULL,
+                         punctuator_id_to_string_func);
     }
 
     return error_new_lexical(ERROR_LEXICAL_PUNCTUATOR, *input_p);
@@ -742,14 +859,19 @@ static DEFINE_PRIMITIVE_NEW_FUNC_WITH_TYPE(boolean, gboolean)
 
 static DEFINE_PRIMITIVE_CLONE_FUNC_FUNC_WITH_TYPE(boolean, gboolean)
 
+static GString *boolean_to_string_func(gpointer _boolean) {
+    gboolean *boolean = _boolean;
+    return g_string_new(boolean ? "true" : "false");
+}
+
 token_t *boolean_literal(gchar **input_p) {
 
     if (text_match(input_p, TEXT_TRUE)) {
         return token_new(TOKEN_LEXICAL_BOOLEAN_LITERAL, boolean_new(TRUE),
-                         boolean_clone_func, NULL);
+                         boolean_clone_func, NULL, boolean_to_string_func);
     } else if (text_match(input_p, TEXT_FALSE)) {
         return token_new(TOKEN_LEXICAL_BOOLEAN_LITERAL, boolean_new(FALSE),
-                         boolean_clone_func, NULL);
+                         boolean_clone_func, NULL, boolean_to_string_func);
     }
 
     return error_new_lexical(ERROR_LEXICAL_BOOLEAN_LITERAL, *input_p);
@@ -821,6 +943,13 @@ static gdouble *number_new_parse_integer(gchar *input, gchar *input_end,
 
 DEFINE_PRIMITIVE_CLONE_FUNC_FUNC_WITH_TYPE(number, gdouble)
 
+static GString *number_to_string_func(gpointer _number) {
+    gdouble *number = _number;
+    GString *result = g_string_new(NULL);
+    g_string_printf(result, "%f", *number);
+    return result;
+}
+
 static token_t *decimal_literal(gchar **input_p) {
 
     do {
@@ -842,7 +971,7 @@ static token_t *decimal_literal(gchar **input_p) {
             }
             return token_new(TOKEN_LEXICAL_NUMERIC_LITERAL,
                              number_new_parse(input_old, *input_p),
-                             number_clone_func, NULL);
+                             number_clone_func, NULL, number_to_string_func);
         }
     } while (FALSE);
 
@@ -879,7 +1008,7 @@ static token_t *binary_integer_literal(gchar **input_p) {
         if (binary_digit_match_multiple(input_p)) {
             return token_new(TOKEN_LEXICAL_NUMERIC_LITERAL,
                              number_new_parse_integer(input_old, *input_p, 2),
-                             number_clone_func, NULL);
+                             number_clone_func, NULL, number_to_string_func);
         }
     }
 
@@ -916,7 +1045,7 @@ static token_t *octal_integer_literal(gchar **input_p) {
         if (octal_digit_match_multiple(input_p)) {
             return token_new(TOKEN_LEXICAL_NUMERIC_LITERAL,
                              number_new_parse_integer(input_old, *input_p, 8),
-                             number_clone_func, NULL);
+                             number_clone_func, NULL, number_to_string_func);
         }
     }
 
@@ -985,7 +1114,7 @@ static token_t *hex_integer_literal(gchar **input_p) {
         if (hex_digit_match_multiple(input_p)) {
             return token_new(TOKEN_LEXICAL_NUMERIC_LITERAL,
                              number_new_parse_integer(input_old, *input_p, 16),
-                             number_clone_func, NULL);
+                             number_clone_func, NULL, number_to_string_func);
         }
     }
 

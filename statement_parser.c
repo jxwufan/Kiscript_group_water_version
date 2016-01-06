@@ -609,15 +609,15 @@ token_t *break_statement(GPtrArray *input, gsize *position_p) {
 
 /*
  * AST:
- * ReturnStatement - Identifier?
+ * ReturnStatement - Expression?
  *
  * GRAMMAR:
  * NONSTANDARD: Allow LineTerminator.
  * ReturnStatement :
- *     return Identifier? ;
+ *     return Expression? ;
  * STANDARD:
  * ReturnStatement :
- *     return ([no LineTerminator here] Identifier)? ;
+ *     return ([no LineTerminator here] Expression)? ;
  */
 
 gboolean return_statement_is_first(GPtrArray *input, gsize position) {
@@ -634,10 +634,8 @@ token_t *return_statement(GPtrArray *input, gsize *position_p) {
 
     if (!token_match_punctuator(input, position_p, PUNCTUATOR_SEMICOLON)) {
 
-        match_token_id_clone_and_add_child_or_free_parent_and_return_error(
-                input, position_p, TOKEN_LEXICAL_IDENTIFIER,
-                return_statement_token,
-                ERROR_STATEMENT_RETURN_STATEMENT_IDENTIFIER)
+        tokenize_and_add_child_or_free_parent_and_return_error(input,
+                position_p, expression, return_statement_token)
 
         match_punctuator_or_free_and_return_error(input, position_p,
                 PUNCTUATOR_SEMICOLON, return_statement_token,

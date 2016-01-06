@@ -49,32 +49,39 @@ int main() {
     }
 
     if (!lexical_parse_normalize_input(&input)) {
-        g_error("lexical_parse_normalize_input: error");
+        fprintf(stderr, "lexical_parse_normalize_input: error");
         g_free(input);
         return EXIT_FAILURE;
     }
 
-    token_t *error = NULL;
-    GPtrArray *token_list = lexical_parse(input, &error);
+    token_t *lexical_error = NULL;
+    GPtrArray *token_list = lexical_parse(input, &lexical_error);
     g_free(input);
-    if (error) {
-        g_error("lexical_parse: %s", error_get_id_name(error));
-        token_free(&error);
+    if (lexical_error) {
+        GString *error_string = token_to_string(lexical_error);
+        fprintf(stderr, "lexical_parse: %s", error_string->str);
+        g_string_free(error_string, TRUE);
+        token_free(&lexical_error);
         return EXIT_FAILURE;
     }
 
     token_t *program_or_error = syntactic_parse(token_list);
     token_list_free(&token_list);
     if (error_is_error(program_or_error)) {
-        g_error("syntactic_parse: %s", error_get_id_name(program_or_error));
+        GString *error_string = token_to_string(program_or_error);
+        fprintf(stderr, "syntactic_parse: %s", error_string->str);
+        g_string_free(error_string, TRUE);
         token_free(&program_or_error);
         return EXIT_FAILURE;
     }
 
-    print_program_tree(program_or_error, 0);
-
+    GString *program_string = token_to_string(program_or_error);
+    printf("%s", program_string->str);
+    g_string_free(program_string, TRUE);
     token_free(&program_or_error);
 
+    printf("\n");
     printf("Hello, KiScript!\n");
+
     return EXIT_SUCCESS;
 }

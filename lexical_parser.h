@@ -83,6 +83,8 @@ typedef enum {
     KEYWORD_SET
 } keyword_id_t;
 
+DECLARE_ID_GET_NAME_FUNC(keyword_id)
+
 gboolean keyword_is_first(gchar *input);
 
 token_t *keyword(gchar **input_p);
@@ -111,6 +113,8 @@ typedef enum {
     FUTURE_RESERVED_WORD_CONST,
     FUTURE_RESERVED_WORD_CLASS
 } future_reserved_word_id_t;
+
+DECLARE_ID_GET_NAME_FUNC(future_reserved_word_id)
 
 gboolean future_reserved_word_is_first(gchar *input);
 
@@ -172,6 +176,8 @@ typedef enum {
     PUNCTUATOR_BITWISE_XOR_ASSIGNMENT,
     PUNCTUATOR_CARET
 } punctuator_id_t;
+
+DECLARE_ID_GET_NAME_FUNC(punctuator_id)
 
 gboolean punctuator_is_first(gchar *input);
 

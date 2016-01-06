@@ -75,16 +75,19 @@ typedef enum {
     TOKEN_PROGRAM_PROGRAM
 } token_id_t;
 
+DECLARE_ID_GET_NAME_FUNC(token_id)
+
 typedef struct {
     token_id_t id;
     gpointer data;
     clone_func_t data_clone_func;
     free_func_t data_free_func;
+    to_string_func_t data_to_string_func;
     GPtrArray *children;
 } token_t;
 
 token_t * token_new(token_id_t id, gpointer data, clone_func_t data_clone_func,
-                    free_func_t data_free_func);
+                    free_func_t data_free_func, to_string_func_t data_to_string_func);
 
 token_t *token_new_gstring(token_id_t id, GString *string);
 
@@ -101,6 +104,8 @@ gboolean token_has_child(token_t *token, gsize position);
 token_t *token_get_child(token_t *token, gsize position);
 
 token_t *token_get_last_child(token_t *token);
+
+GString *token_to_string(token_t *token);
 
 
 GPtrArray *token_list_new();
@@ -262,6 +267,8 @@ typedef enum {
     ERROR_FUNCTION_SOURCE_ELEMENT
 } error_id_t;
 
+DECLARE_ID_GET_NAME_FUNC(error_id)
+
 typedef struct {
     error_id_t id;
     gboolean is_lexical;
@@ -287,7 +294,5 @@ DECLARE_TOKEN_IS_TOKEN_FUNC(error)
 DECLARE_TOKEN_GET_ID_FUNC(error)
 
 DECLARE_TOKEN_IS_TOKEN_WITH_ID_FUNC(error)
-
-char *error_get_id_name(token_t *error);
 
 #endif //KISCRIPT_PARSER_H
