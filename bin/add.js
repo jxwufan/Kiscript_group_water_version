@@ -1,3 +1,5 @@
 var a = 5;
-var b = 6;
-a + b;
+var b = 8;
+++b;
+a | b;
+a && b;
