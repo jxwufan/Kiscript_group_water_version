@@ -22,7 +22,7 @@ activation_record_t *activation_record_clone(activation_record_t *origin) {
 
     g_hash_table_ref(origin->AR_hash_table);
 
-    return NULL;
+    return new_AR;
 }
 
 void activation_record_reach_end_of_scope(activation_record_t *AR) {
@@ -53,7 +53,7 @@ gboolean activation_record_declare(activation_record_t *AR, gchar *key) {
     return g_hash_table_insert(AR->AR_hash_table, key, NULL);
 }
 
-gpointer activation_record_lookup(activation_record_t *AR, gchar *key) {
+variable_t * activation_record_lookup(activation_record_t *AR, gchar *key) {
     while (AR != NULL) {
         if (g_hash_table_contains(AR->AR_hash_table, key)) {
             return g_hash_table_lookup(AR->AR_hash_table, key);

@@ -7,6 +7,7 @@
 
 #include <glib.h>
 #include <gc.h>
+#include "variable.h"
 
 typedef struct _activation_record {
     struct _activation_record   *link;
@@ -17,9 +18,9 @@ typedef struct _activation_record {
 activation_record_t *activation_record_new(activation_record_t *link);
 activation_record_t *activation_record_clone(activation_record_t *origin);
 
-gboolean activation_record_insert   (activation_record_t *AR, gchar *key, gpointer value);
-gboolean activation_record_declare  (activation_record_t *AR, gchar *key);
-gpointer activation_record_lookup   (activation_record_t *AR, gchar *key);
+gboolean    activation_record_insert    (activation_record_t *AR, gchar *key, gpointer value);
+gboolean    activation_record_declare   (activation_record_t *AR, gchar *key);
+variable_t  *activation_record_lookup   (activation_record_t *AR, gchar *key);
 
 void activation_record_reach_end_of_scope(activation_record_t *AR);
 

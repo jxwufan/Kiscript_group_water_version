@@ -1,6 +1,7 @@
 var b = 5;
 
-var e = true;
+var e;
+e = true;
 
 var a = {
     a: "123",
