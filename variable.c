@@ -60,6 +60,13 @@ gchar* variable_to_string(variable_t *variable) {
         }
     } else if (variable->variable_type == VARIABLE_STRING) {
         strcpy(str, (gchar*) variable->variable_data);
+    } else if (variable->variable_type == VARIABLE_BOOL) {
+        gboolean bool_value = *((gboolean*) variable->variable_data);
+        if (bool_value) {
+            sprintf(str, "true");
+        } else {
+            sprintf(str, "false");
+        }
     }
 
     return str;
