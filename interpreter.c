@@ -23,7 +23,9 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
     for (guint i  = 0; i < program_token->children->len; ++i) {
         return_struct_t *return_struct;
         return_struct = evaluate_token(token_get_child(program_token, i), AR);
-        printf("%s\n", variable_to_string(return_struct->mid_variable));
+        if (return_struct->mid_variable != NULL) {
+            printf("%s\n", variable_to_string(return_struct->mid_variable));
+        }
     }
     return NULL;
 }
