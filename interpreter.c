@@ -47,8 +47,9 @@ gboolean is_lexical(token_t *token) {
 gboolean is_expression(token_t *token) {
     return token->id == TOKEN_EXPRESSION_ADDITIVE_EXPRESSION             ||
            token->id == TOKEN_EXPRESSION_MULTIPLICATIVE_EXPRESSION       ||
-           token->id == TOKEN_EXPRESSION_EQUALITY_EXPRESSION                ||
-           token->id == TOKEN_EXPRESSION_CALL_EXPRESSION;//        ||
+           token->id == TOKEN_EXPRESSION_EQUALITY_EXPRESSION             ||
+           token->id == TOKEN_EXPRESSION_CALL_EXPRESSION                 ||
+           token->id == TOKEN_EXPRESSION_SHIFT_EXPRESSION;
 //           token->id == TOKEN_EXPRESSION_ARGUMENT_LIST;
 }
 
@@ -190,6 +191,100 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 }
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_numerical_new(&result);
+                return return_struct;
+            }
+        }
+    } else if (expression_token->id == TOKEN_EXPRESSION_EQUALITY_EXPRESSION) {
+        g_assert(expression_token->children->len == 3);
+        return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
+        variable_t *lhs = return_struct_lhs->mid_variable;
+        // TODO: check return status
+        return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
+        variable_t *rhs = return_struct_rhs->mid_variable;
+        // TODO: check return status
+        if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_EQUALS) {
+            if ((lhs->variable_type == VARIABLE_NUMERICAL
+                    || lhs->variable_type == VARIABLE_STRING
+                    || lhs->variable_type == VARIABLE_BOOL)
+                && (rhs->variable_type == VARIABLE_NUMERICAL
+                    || rhs->variable_type == VARIABLE_STRING
+                    || rhs->variable_type == VARIABLE_BOOL)) {
+                gchar* lhs_str = variable_to_string(lhs);
+                gchar* rhs_str = variable_to_string(rhs);
+                gboolean result;
+
+                if (g_strcmp0(lhs_str, rhs_str)==0) {
+                    result = TRUE;
+                } else {
+                    result = FALSE;
+                }
+
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
+            }
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_DOES_NOT_EQUAL) {
+            if ((lhs->variable_type == VARIABLE_NUMERICAL
+                 || lhs->variable_type == VARIABLE_STRING
+                 || lhs->variable_type == VARIABLE_BOOL)
+                && (rhs->variable_type == VARIABLE_NUMERICAL
+                    || rhs->variable_type == VARIABLE_STRING
+                    || rhs->variable_type == VARIABLE_BOOL)) {
+                gchar* lhs_str = variable_to_string(lhs);
+                gchar* rhs_str = variable_to_string(rhs);
+                gboolean result;
+
+                if (g_strcmp0(lhs_str, rhs_str)==0) {
+                    result = FALSE;
+                } else {
+                    result = TRUE;
+                }
+
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
+            }
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_STRICT_EQUALS) {
+            if ((lhs->variable_type == VARIABLE_NUMERICAL
+                 || lhs->variable_type == VARIABLE_STRING
+                 || lhs->variable_type == VARIABLE_BOOL)
+                && (rhs->variable_type == VARIABLE_NUMERICAL
+                    || rhs->variable_type == VARIABLE_STRING
+                    || rhs->variable_type == VARIABLE_BOOL)
+                && lhs->variable_type == rhs->variable_type) {
+                gchar* lhs_str = variable_to_string(lhs);
+                gchar* rhs_str = variable_to_string(rhs);
+                gboolean result;
+
+                if (g_strcmp0(lhs_str, rhs_str)==0) {
+                    result = TRUE;
+                } else {
+                    result = FALSE;
+                }
+
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
+            }
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_STRICT_DOES_NOT_EQUAL) {
+            if ((lhs->variable_type == VARIABLE_NUMERICAL
+                 || lhs->variable_type == VARIABLE_STRING
+                 || lhs->variable_type == VARIABLE_BOOL)
+                && (rhs->variable_type == VARIABLE_NUMERICAL
+                    || rhs->variable_type == VARIABLE_STRING
+                    || rhs->variable_type == VARIABLE_BOOL)) {
+                gchar* lhs_str = variable_to_string(lhs);
+                gchar* rhs_str = variable_to_string(rhs);
+                gboolean result;
+
+                if (g_strcmp0(lhs_str, rhs_str)==0 && lhs->variable_type == rhs->variable_type) {
+                    result = FALSE;
+                } else {
+                    result = TRUE;
+                }
+
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
                 return return_struct;
             }
         }

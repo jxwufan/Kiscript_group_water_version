@@ -64,7 +64,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    evaluate_program(program_or_error, NULL);
+//    evaluate_program(program_or_error, NULL);
 
     GString *program_string = token_to_string(program_or_error);
     printf("%s", program_string->str);
