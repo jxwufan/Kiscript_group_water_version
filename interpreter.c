@@ -55,7 +55,9 @@ gboolean is_expression(token_t *token) {
 }
 
 gboolean is_statement(token_t *token) {
-    return token->id == TOKEN_STATEMENT_EXPRESSION_STATEMENT;
+    return  token->id == TOKEN_STATEMENT_EXPRESSION_STATEMENT ||
+            token->id == TOKEN_STATEMENT_VARIABLE_DECLARATION ||
+            token->id == TOKEN_STATEMENT_VARIABLE_STATEMENT;
 }
 
 return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *AR_Parent) {
@@ -105,6 +107,23 @@ return_struct_t *evaluate_statement(token_t *statement_token, activation_record_
 
     if (statement_token->id == TOKEN_STATEMENT_EXPRESSION_STATEMENT) {
         return evaluate_token(token_get_child(statement_token, 0), AR_Parent);
+    } else if (statement_token->id == TOKEN_STATEMENT_VARIABLE_STATEMENT) {
+        return evaluate_token(token_get_child(statement_token, 0), AR_Parent);
+    } else if (statement_token->id == TOKEN_STATEMENT_VARIABLE_DECLARATION) {
+        g_assert(token_get_child(statement_token, 0)->id == TOKEN_LEXICAL_IDENTIFIER);
+        gchar *identifier_str = identifier_get_value(token_get_child(statement_token, 0))->str;
+
+        activation_record_declare(AR_Parent, identifier_str);
+        if (statement_token->children->len > 1) {
+            return_struct_t *return_struct;
+            return_struct = evaluate_token(token_get_child(statement_token, 1), AR_Parent);
+            if (return_struct->status == STAUS_NORMAL) {
+                activation_record_insert(AR_Parent, identifier_str, return_struct->mid_variable);
+                return return_struct;
+            } else if (return_struct->status == STAUS_THROW) {
+                // TODO: handel exception
+            }
+        }
     }
 
     return NULL;
