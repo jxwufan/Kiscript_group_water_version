@@ -40,7 +40,9 @@ variable_t *variable_clone(variable_t *variable) {
 }
 
 void variable_on_destory(variable_t *variable) {
-    g_assert(variable != NULL);
+//    g_assert(variable != NULL);
+    if (variable == NULL)
+        return;
     if (variable->variable_type == VARIABLE_FUNC) {
         g_hash_table_unref(variable->AR->AR_hash_table);
     } else if (variable->variable_type == VARIABLE_OBJECT){
