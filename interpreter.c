@@ -159,7 +159,40 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return return_struct;
             }
         }
-
+    } else if (expression_token->id == TOKEN_EXPRESSION_SHIFT_EXPRESSION) {
+        g_assert(expression_token->children->len == 3);
+        return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
+        variable_t *lhs = return_struct_lhs->mid_variable;
+        // TODO: check return status
+        return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
+        variable_t *rhs = return_struct_rhs->mid_variable;
+        // TODO: check return status
+        if (lhs->variable_type == VARIABLE_NUMERICAL && rhs->variable_type == VARIABLE_NUMERICAL) {
+            gdouble *lhs_value = lhs->variable_data;
+            gdouble *rhs_value = rhs->variable_data;
+            gint lhs_value_int = (int)(*lhs_value);
+            gint rhs_value_int = (int)(*rhs_value);
+            gdouble result;
+            if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_LEFT_SHIFT) {
+                result = lhs_value_int << rhs_value_int;
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_numerical_new(&result);
+                return return_struct;
+            } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_SIGNED_RIGHT_SHIFT) {
+                result = lhs_value_int >> rhs_value_int;
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_numerical_new(&result);
+                return return_struct;
+            } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_UNSIGNED_RIGHT_SHIFT) {
+                result = lhs_value_int >> rhs_value_int;
+                if (result<0) {
+                    result = 2147483647 + result + 1;
+                }
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_numerical_new(&result);
+                return return_struct;
+            }
+        }
     }
 
     return NULL;
