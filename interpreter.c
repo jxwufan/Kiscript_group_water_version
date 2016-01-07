@@ -45,8 +45,9 @@ gboolean is_lexical(token_t *token) {
 }
 
 gboolean is_expression(token_t *token) {
-    return token->id == TOKEN_EXPRESSION_ADDITIVE_EXPRESSION    ||
-           token->id == TOKEN_EXPRESSION_EQUALITY_EXPRESSION    ||
+    return token->id == TOKEN_EXPRESSION_ADDITIVE_EXPRESSION             ||
+           token->id == TOKEN_EXPRESSION_MULTIPLICATIVE_EXPRESSION       ||
+           token->id == TOKEN_EXPRESSION_EQUALITY_EXPRESSION                ||
            token->id == TOKEN_EXPRESSION_CALL_EXPRESSION;//        ||
 //           token->id == TOKEN_EXPRESSION_ARGUMENT_LIST;
 }
@@ -111,14 +112,47 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
     if (expression_token->id == TOKEN_EXPRESSION_ADDITIVE_EXPRESSION) {
         g_assert(expression_token->children->len == 3);
-        variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_varible;
-        variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_varible;
+        return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
+        variable_t *lhs = return_struct_lhs->mid_varible;
+        // TODO: check return staus
+        return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
+        variable_t *rhs = return_struct_rhs->mid_varible;
+        // TODO: check return staus
         if (lhs->variable_type == VARIABLE_NUMERICAL && rhs->variable_type == VARIABLE_NUMERICAL) {
             gdouble *lhs_value = lhs->variable_data;
             gdouble *rhs_value = rhs->variable_data;
             gdouble result;
             if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_PLUS) {
                 result = *lhs_value + *rhs_value;
+                return_struct->staus = STAUS_NORMAL;
+                return_struct->mid_varible = variable_numerical_new(&result);
+                return return_struct;
+            } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_MINUS) {
+                result = *lhs_value - *rhs_value;
+                return_struct->staus = STAUS_NORMAL;
+                return_struct->mid_varible = variable_numerical_new(&result);
+                return return_struct;
+            }
+        }
+    } else if (expression_token->id == TOKEN_EXPRESSION_MULTIPLICATIVE_EXPRESSION) {
+        g_assert(expression_token->children->len == 3);
+        return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
+        variable_t *lhs = return_struct_lhs->mid_varible;
+        // TODO: check return staus
+        return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
+        variable_t *rhs = return_struct_rhs->mid_varible;
+        // TODO: check return staus
+        if (lhs->variable_type == VARIABLE_NUMERICAL && rhs->variable_type == VARIABLE_NUMERICAL) {
+            gdouble *lhs_value = lhs->variable_data;
+            gdouble *rhs_value = rhs->variable_data;
+            gdouble result;
+            if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_SLASH) {
+                result = *lhs_value / *rhs_value;
+                return_struct->staus = STAUS_NORMAL;
+                return_struct->mid_varible = variable_numerical_new(&result);
+                return return_struct;
+            } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_ASTERISK) {
+                result = *lhs_value * *rhs_value;
                 return_struct->staus = STAUS_NORMAL;
                 return_struct->mid_varible = variable_numerical_new(&result);
                 return return_struct;
