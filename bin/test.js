@@ -8,6 +8,9 @@ var a = {
 };
 
 function d(n) {
+    for (var i = 0; i < 3; i++) {
+        print(i);
+    }
     if (n == 1) {
         return n;
     } else {

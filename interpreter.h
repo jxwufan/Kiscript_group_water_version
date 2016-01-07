@@ -25,6 +25,7 @@ typedef struct {
 return_struct_t *return_struct_new();
 
 gboolean is_lexical     (token_t *token);
+gboolean is_funciton    (token_t *token);
 gboolean is_expression  (token_t *token);
 gboolean is_statement   (token_t *token);
 gboolean is_program     (token_t *token);

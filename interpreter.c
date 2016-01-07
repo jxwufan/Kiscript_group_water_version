@@ -88,3 +88,8 @@ return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *
     }
     return NULL;
 }
+
+gboolean is_funciton(token_t *token) {
+//    if (token->id == TOKEN_FUNCTION_FUNCTION_DECLARATION)
+    return FALSE;
+}

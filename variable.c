@@ -58,6 +58,7 @@ gchar* variable_to_string(variable_t *variable) {
         } else {
             sprintf(str, "%.5f", tmp_double);
         }
+    } else if (variable->variable_type == VARIABLE_STRING) {
     }
 
     return str;
@@ -95,7 +96,7 @@ variable_t *variable_numerical_new(gpointer numerical_data) {
 variable_t *variable_string_new(gpointer string_data) {
     guint str_mem_len = strlen((gchar*) string_data) + 1;
     gchar *str = GC_malloc((str_mem_len) * sizeof(gchar));
-    memcpy(str, string_data, str_mem_len * sizeof(gchar));
+    strcpy(str, (gchar*) string_data);
     return variable_new(VARIABLE_STRING, str, NULL);
 }
 
