@@ -59,6 +59,7 @@ gchar* variable_to_string(variable_t *variable) {
             sprintf(str, "%.5f", tmp_double);
         }
     } else if (variable->variable_type == VARIABLE_STRING) {
+        strcpy(str, (gchar*) variable->variable_data);
     }
 
     return str;

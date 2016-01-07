@@ -5,23 +5,25 @@
 #include "interpreter.h"
 #include "parser.h"
 #include "lexical_parser.h"
+#include "variable.h"
 
 return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) {
     if (is_lexical(token)) {
         return evaluate_lexicial(token, AR_parent);
-//    } else if (is_expression(token)) {
-//        return evaluate_expression(token, AR_parent);
-//    } else if (is_statement(token)) {
-//        return evaluate_expression(token, AR_parent);
+    } else if (is_expression(token)) {
+        return evaluate_expression(token, AR_parent);
+    } else if (is_statement(token)) {
+        return evaluate_statement(token, AR_parent);
     }
     return NULL;
 }
 
 return_struct_t *evaluate_program(token_t *program_token, activation_record_t *AR_parent) {
-//    activation_record_t *AR = activation_record_new(AR_parent);
+    activation_record_t *AR = activation_record_new(AR_parent);
     for (guint i  = 0; i < program_token->children->len; ++i) {
-//        return_struct_t *return_struct = return_struct_new();
-//        return_struct = evaluate_token(token_get_child(program_token, i), AR);
+        return_struct_t *return_struct;
+        return_struct = evaluate_token(token_get_child(program_token, i), AR);
+        printf("%s\n", variable_to_string(return_struct->mid_varible));
     }
     return NULL;
 }
@@ -50,7 +52,7 @@ gboolean is_expression(token_t *token) {
 }
 
 gboolean is_statement(token_t *token) {
-    return FALSE;
+    return token->id == TOKEN_STATEMENT_EXPRESSION_STATEMENT;
 }
 
 return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *AR_Parent) {
@@ -90,6 +92,39 @@ return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *
 }
 
 gboolean is_funciton(token_t *token) {
-//    if (token->id == TOKEN_FUNCTION_FUNCTION_DECLARATION)
+    return token->id == TOKEN_FUNCTION_FUNCTION_DECLARATION;
     return FALSE;
+}
+
+return_struct_t *evaluate_statement(token_t *statement_token, activation_record_t *AR_Parent) {
+//    return_struct_t = return_struct_new();
+
+    if (statement_token->id == TOKEN_STATEMENT_EXPRESSION_STATEMENT) {
+        return evaluate_token(token_get_child(statement_token, 0), AR_Parent);
+    }
+
+    return NULL;
+}
+
+return_struct_t *evaluate_expression(token_t *expression_token, activation_record_t *AR_Parent) {
+    return_struct_t *return_struct = return_struct_new();
+
+    if (expression_token->id == TOKEN_EXPRESSION_ADDITIVE_EXPRESSION) {
+        g_assert(expression_token->children->len == 3);
+        variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_varible;
+        variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_varible;
+        if (lhs->variable_type == VARIABLE_NUMERICAL && rhs->variable_type == VARIABLE_NUMERICAL) {
+            gdouble *lhs_value = lhs->variable_data;
+            gdouble *rhs_value = rhs->variable_data;
+            gdouble result;
+            if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_PLUS) {
+                result = *lhs_value + *rhs_value;
+                return_struct->staus = STAUS_NORMAL;
+                return_struct->mid_varible = variable_numerical_new(&result);
+                return return_struct;
+            }
+        }
+    }
+
+    return NULL;
 }
