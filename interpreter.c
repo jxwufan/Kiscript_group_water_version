@@ -159,6 +159,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return return_struct;
             }
         }
+
     }
 
     return NULL;
