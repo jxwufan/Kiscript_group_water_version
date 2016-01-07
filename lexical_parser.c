@@ -852,7 +852,7 @@ token_t *null_literal(gchar **input_p) {
 
 gboolean boolean_literal_is_first(gchar *input) {
     return (text_match(&input, TEXT_TRUE) || text_match(&input, TEXT_FALSE))
-           && identifier_part_is_first(input);
+           && !identifier_part_is_first(input);
 }
 
 static DEFINE_PRIMITIVE_NEW_FUNC_WITH_TYPE(boolean, gboolean)
