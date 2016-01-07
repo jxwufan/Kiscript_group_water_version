@@ -70,6 +70,7 @@ return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *
             return_struct->status = STAUS_NORMAL;
         } else {
             return_struct->status = STAUS_THROW;
+            // TODO: return exception
         }
 
         return return_struct;
