@@ -26,5 +26,6 @@ token_t *program(GPtrArray *input, gsize *position_p) {
                 position_p, source_element, program_token)
     }
 
+
     return program_token;
 }

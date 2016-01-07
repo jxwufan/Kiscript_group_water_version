@@ -9,9 +9,11 @@
 #include "parser.h"
 
 typedef enum {
-    THROW,
-    CONTINUE,
-    BREAK
+    STAUS_UNDEFINED,
+    STAUS_NORMAL,
+    STAUS_THROW,
+    STAUS_CONTINUE,
+    STAUS_BREAK
 } return_staus_t;
 
 typedef struct {

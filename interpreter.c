@@ -4,6 +4,7 @@
 
 #include "interpreter.h"
 #include "parser.h"
+#include "lexical_parser.h"
 
 return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) {
     if (is_lexical(token)) {
@@ -27,6 +28,9 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
 
 return_struct_t *return_struct_new() {
     return_struct_t *return_struct = GC_malloc(sizeof(return_struct_t));
+    return_struct->staus       = STAUS_UNDEFINED;
+    return_struct->mid_varible = NULL;
+    return_struct->end_varible = NULL;
     return return_struct;
 }
 
@@ -50,5 +54,37 @@ gboolean is_statement(token_t *token) {
 }
 
 return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *AR_Parent) {
+    return_struct_t *return_struct = return_struct_new();
+
+    if (lexical_token->id == TOKEN_LEXICAL_BOOLEAN_LITERAL) {
+        return_struct->staus = STAUS_NORMAL;
+        return_struct->mid_varible = variable_bool_new(boolean_literal_get_value(lexical_token));
+
+        return return_struct;
+    } else if (lexical_token->id == TOKEN_LEXICAL_IDENTIFIER) {
+        return_struct->mid_varible = activation_record_lookup(AR_Parent, identifier_get_value(lexical_token)->str);
+        if (return_struct->mid_varible != NULL) {
+            return_struct->staus = STAUS_NORMAL;
+        } else {
+            return_struct->staus = STAUS_THROW;
+        }
+
+        return return_struct;
+    } else if (lexical_token->id == TOKEN_LEXICAL_NULL_LITERAL) {
+        return_struct->staus = STAUS_NORMAL;
+        return_struct->mid_varible = variable_null_new();
+
+        return return_struct;
+    } else if (lexical_token->id == TOKEN_LEXICAL_NUMERIC_LITERAL) {
+        return_struct->staus = STAUS_NORMAL;
+        return_struct->mid_varible = variable_numerical_new(numeric_literal_get_value(lexical_token));
+
+        return return_struct;
+    } else if (lexical_token->id == TOKEN_LEXICAL_STRING_LITERAL) {
+        return_struct->staus = STAUS_NORMAL;
+        return_struct->mid_varible = variable_string_new(string_literal_get_value(lexical_token)->str);
+
+        return return_struct;
+    }
     return NULL;
 }

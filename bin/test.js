@@ -1,5 +1,7 @@
 var b = 5;
 
+var e = true;
+
 var a = {
     a: "123",
     b: "345"

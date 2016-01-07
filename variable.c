@@ -27,6 +27,11 @@ variable_t *variable_clone(variable_t *variable) {
     variable_t *new_variable = (variable_t*) GC_malloc(sizeof(variable_t));
     new_variable->variable_type = variable->variable_type;
     new_variable->variable_data = variable->variable_data;
+
+    if (variable->variable_type == VARIABLE_OBJECT) {
+        g_hash_table_ref((GHashTable*) variable->variable_data);
+    }
+
     if (variable->variable_type == VARIABLE_FUNC) {
         new_variable->AR = variable->AR;
         g_hash_table_ref(variable->AR->AR_hash_table);
@@ -35,10 +40,12 @@ variable_t *variable_clone(variable_t *variable) {
 }
 
 void variable_on_destory(variable_t *variable) {
+    g_assert(variable != NULL);
     if (variable->variable_type == VARIABLE_FUNC) {
         g_hash_table_unref(variable->AR->AR_hash_table);
     } else if (variable->variable_type == VARIABLE_OBJECT){
         // TODO: recollect attriube table memory
+        g_hash_table_unref((GHashTable*) variable->variable_data);
     }
 }
 
@@ -74,7 +81,9 @@ variable_t *variable_null_new() {
 }
 
 variable_t *variable_bool_new(gpointer bool_data) {
-    return variable_new(VARIABLE_BOOL, GC_malloc(sizeof(gboolean)), NULL);
+    gboolean  *tmp_bool = (gboolean*) GC_malloc(sizeof(gboolean));
+    *tmp_bool = *((gboolean *) bool_data);
+    return variable_new(VARIABLE_BOOL, tmp_bool, NULL);
 }
 
 variable_t *variable_numerical_new(gpointer numerical_data) {
@@ -84,9 +93,9 @@ variable_t *variable_numerical_new(gpointer numerical_data) {
 }
 
 variable_t *variable_string_new(gpointer string_data) {
-    guint str_len = strlen((gchar*) string_data);
-    gchar *str = GC_malloc(str_len * sizeof(gchar));
-    memcpy(str, string_data, str_len);
+    guint str_mem_len = strlen((gchar*) string_data) + 1;
+    gchar *str = GC_malloc((str_mem_len) * sizeof(gchar));
+    memcpy(str, string_data, str_mem_len * sizeof(gchar));
     return variable_new(VARIABLE_STRING, str, NULL);
 }
 
