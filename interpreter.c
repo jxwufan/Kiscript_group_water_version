@@ -23,16 +23,16 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
     for (guint i  = 0; i < program_token->children->len; ++i) {
         return_struct_t *return_struct;
         return_struct = evaluate_token(token_get_child(program_token, i), AR);
-        printf("%s\n", variable_to_string(return_struct->mid_varible));
+        printf("%s\n", variable_to_string(return_struct->mid_variable));
     }
     return NULL;
 }
 
 return_struct_t *return_struct_new() {
     return_struct_t *return_struct = GC_malloc(sizeof(return_struct_t));
-    return_struct->staus       = STAUS_UNDEFINED;
-    return_struct->mid_varible = NULL;
-    return_struct->end_varible = NULL;
+    return_struct->status = STAUS_UNDEFINED;
+    return_struct->mid_variable = NULL;
+    return_struct->end_variable = NULL;
     return return_struct;
 }
 
@@ -60,32 +60,32 @@ return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *
     return_struct_t *return_struct = return_struct_new();
 
     if (lexical_token->id == TOKEN_LEXICAL_BOOLEAN_LITERAL) {
-        return_struct->staus = STAUS_NORMAL;
-        return_struct->mid_varible = variable_bool_new(boolean_literal_get_value(lexical_token));
+        return_struct->status = STAUS_NORMAL;
+        return_struct->mid_variable = variable_bool_new(boolean_literal_get_value(lexical_token));
 
         return return_struct;
     } else if (lexical_token->id == TOKEN_LEXICAL_IDENTIFIER) {
-        return_struct->mid_varible = activation_record_lookup(AR_Parent, identifier_get_value(lexical_token)->str);
-        if (return_struct->mid_varible != NULL) {
-            return_struct->staus = STAUS_NORMAL;
+        return_struct->mid_variable = activation_record_lookup(AR_Parent, identifier_get_value(lexical_token)->str);
+        if (return_struct->mid_variable != NULL) {
+            return_struct->status = STAUS_NORMAL;
         } else {
-            return_struct->staus = STAUS_THROW;
+            return_struct->status = STAUS_THROW;
         }
 
         return return_struct;
     } else if (lexical_token->id == TOKEN_LEXICAL_NULL_LITERAL) {
-        return_struct->staus = STAUS_NORMAL;
-        return_struct->mid_varible = variable_null_new();
+        return_struct->status = STAUS_NORMAL;
+        return_struct->mid_variable = variable_null_new();
 
         return return_struct;
     } else if (lexical_token->id == TOKEN_LEXICAL_NUMERIC_LITERAL) {
-        return_struct->staus = STAUS_NORMAL;
-        return_struct->mid_varible = variable_numerical_new(numeric_literal_get_value(lexical_token));
+        return_struct->status = STAUS_NORMAL;
+        return_struct->mid_variable = variable_numerical_new(numeric_literal_get_value(lexical_token));
 
         return return_struct;
     } else if (lexical_token->id == TOKEN_LEXICAL_STRING_LITERAL) {
-        return_struct->staus = STAUS_NORMAL;
-        return_struct->mid_varible = variable_string_new(string_literal_get_value(lexical_token)->str);
+        return_struct->status = STAUS_NORMAL;
+        return_struct->mid_variable = variable_string_new(string_literal_get_value(lexical_token)->str);
 
         return return_struct;
     }
@@ -113,48 +113,48 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
     if (expression_token->id == TOKEN_EXPRESSION_ADDITIVE_EXPRESSION) {
         g_assert(expression_token->children->len == 3);
         return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
-        variable_t *lhs = return_struct_lhs->mid_varible;
-        // TODO: check return staus
+        variable_t *lhs = return_struct_lhs->mid_variable;
+        // TODO: check return status
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
-        variable_t *rhs = return_struct_rhs->mid_varible;
-        // TODO: check return staus
+        variable_t *rhs = return_struct_rhs->mid_variable;
+        // TODO: check return status
         if (lhs->variable_type == VARIABLE_NUMERICAL && rhs->variable_type == VARIABLE_NUMERICAL) {
             gdouble *lhs_value = lhs->variable_data;
             gdouble *rhs_value = rhs->variable_data;
             gdouble result;
             if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_PLUS) {
                 result = *lhs_value + *rhs_value;
-                return_struct->staus = STAUS_NORMAL;
-                return_struct->mid_varible = variable_numerical_new(&result);
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_MINUS) {
                 result = *lhs_value - *rhs_value;
-                return_struct->staus = STAUS_NORMAL;
-                return_struct->mid_varible = variable_numerical_new(&result);
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             }
         }
     } else if (expression_token->id == TOKEN_EXPRESSION_MULTIPLICATIVE_EXPRESSION) {
         g_assert(expression_token->children->len == 3);
         return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
-        variable_t *lhs = return_struct_lhs->mid_varible;
-        // TODO: check return staus
+        variable_t *lhs = return_struct_lhs->mid_variable;
+        // TODO: check return status
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
-        variable_t *rhs = return_struct_rhs->mid_varible;
-        // TODO: check return staus
+        variable_t *rhs = return_struct_rhs->mid_variable;
+        // TODO: check return status
         if (lhs->variable_type == VARIABLE_NUMERICAL && rhs->variable_type == VARIABLE_NUMERICAL) {
             gdouble *lhs_value = lhs->variable_data;
             gdouble *rhs_value = rhs->variable_data;
             gdouble result;
             if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_SLASH) {
                 result = *lhs_value / *rhs_value;
-                return_struct->staus = STAUS_NORMAL;
-                return_struct->mid_varible = variable_numerical_new(&result);
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_ASTERISK) {
                 result = *lhs_value * *rhs_value;
-                return_struct->staus = STAUS_NORMAL;
-                return_struct->mid_varible = variable_numerical_new(&result);
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             }
         }

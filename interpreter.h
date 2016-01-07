@@ -14,12 +14,12 @@ typedef enum {
     STAUS_THROW,
     STAUS_CONTINUE,
     STAUS_BREAK
-} return_staus_t;
+} return_status_t;
 
 typedef struct {
-    return_staus_t  staus;
-    variable_t      *mid_varible;
-    variable_t      *end_varible;
+    return_status_t status;
+    variable_t      *mid_variable;
+    variable_t      *end_variable;
 } return_struct_t;
 
 return_struct_t *return_struct_new();
