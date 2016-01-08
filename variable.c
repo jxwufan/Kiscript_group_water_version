@@ -81,6 +81,25 @@ gchar* variable_to_string(variable_t *variable) {
     return str;
 }
 
+gdouble variable_to_numerical(variable_t *variable) {
+    gdouble return_value;
+    if (variable->variable_type == VARIABLE_STRING) {
+        gchar* str = (gchar*) variable->variable_data;
+        sscanf(str, "%lf", &return_value);
+    } else if (variable->variable_type == VARIABLE_NUMERICAL) {
+        return_value = *((gdouble*)variable->variable_data);
+    } else if (variable->variable_type == VARIABLE_BOOL) {
+        gboolean tmp_bool = *((gboolean*)variable->variable_data);
+        if (tmp_bool) {
+            return_value = 1;
+        } else {
+            return_value = 0;
+        }
+    }
+
+    return return_value;
+}
+
 void variable_free(variable_t *variable) {
     if (variable->variable_data != NULL) {
         if (variable->variable_type != VARIABLE_OBJECT) {
