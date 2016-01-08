@@ -85,10 +85,29 @@ gdouble variable_to_numerical(variable_t *variable) {
     gdouble return_value = NAN;
     if (variable->variable_type == VARIABLE_STRING) {
         gchar* str = (gchar*) variable->variable_data;
-        gchar* str_cmp = GC_malloc(TO_STRING_LEN);
         sscanf(str, "%lf", &return_value);
-        sprintf(str_cmp, "%lf", return_value);
-        if (g_strcmp0(str, str_cmp)!=0) {
+
+        gboolean is_legal_num = TRUE;
+        gint cnt_dot = 0;
+
+        for (gint i=0; i<strlen(str); i++) {
+            if (str[i]>='0' && str[i]<='9') {
+                continue;
+            } else if (str[i]=='.') {
+                cnt_dot++;
+                if (cnt_dot>1) {
+                    is_legal_num = FALSE;
+                }
+            } else if (str[i]=='-') {
+                if (i>0) {
+                    is_legal_num = FALSE;
+                }
+            } else {
+                is_legal_num = FALSE;
+            }
+        }
+
+        if (!is_legal_num) {
             return_value = NAN;
         }
     } else if (variable->variable_type == VARIABLE_NUMERICAL) {
