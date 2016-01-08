@@ -183,6 +183,12 @@ static GString *token_to_string_with_indentation(token_t *token,
     for (gsize i = 0; i < indentation; ++i) {
         g_string_append_c(result, '\t');
     }
+
+    if (token == NULL) {
+        g_string_append(result, "(null)\n");
+        return result;
+    }
+
     g_string_append(result, token_id_get_name(token->id));
     if (token->data) {
         if (!token->data_to_string_func) {
