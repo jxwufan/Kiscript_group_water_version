@@ -19,7 +19,8 @@ return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) 
 }
 
 return_struct_t *evaluate_program(token_t *program_token, activation_record_t *AR_parent) {
-    activation_record_t *AR = activation_record_new(AR_parent);
+    activation_record_t *AR = activation_record_new(AR_parent, NULL);
+    AR->static_link = AR;
     for (guint i  = 0; i < program_token->children->len; ++i) {
         return_struct_t *return_struct;
         return_struct = evaluate_token(token_get_child(program_token, i), AR);
@@ -97,7 +98,7 @@ return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *
     return NULL;
 }
 
-gboolean is_funciton(token_t *token) {
+gboolean is_function(token_t *token) {
     return token->id == TOKEN_FUNCTION_FUNCTION_DECLARATION;
     return FALSE;
 }
