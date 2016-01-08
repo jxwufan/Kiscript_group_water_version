@@ -61,7 +61,8 @@ gboolean is_expression(token_t *token) {
            token->id == TOKEN_EXPRESSION_LOGICAL_OR_EXPRESSION           ||
            token->id == TOKEN_EXPRESSION_BITWISE_AND_EXPRESSION          ||
            token->id == TOKEN_EXPRESSION_BITWISE_OR_EXPRESSION           ||
-           token->id == TOKEN_EXPRESSION_BITWISE_XOR_EXPRESSION;
+           token->id == TOKEN_EXPRESSION_BITWISE_XOR_EXPRESSION          ||
+           token->id == TOKEN_EXPRESSION_ASSIGNMENT_EXPRESSION;
 //           token->id == TOKEN_EXPRESSION_ARGUMENT_LIST;
 }
 
@@ -142,8 +143,19 @@ return_struct_t *evaluate_statement(token_t *statement_token, activation_record_
 
 return_struct_t *evaluate_expression(token_t *expression_token, activation_record_t *AR_Parent) {
     return_struct_t *return_struct = return_struct_new();
+    if (expression_token->id == TOKEN_EXPRESSION_ASSIGNMENT_EXPRESSION) {
+        gchar *identifier;
+        GHashTable *storage_hash_table;
+        resolve_assignment_identifier(token_get_child(expression_token, 0), AR_Parent->AR_hash_table, &identifier, &storage_hash_table);
 
-    if (expression_token->id == TOKEN_EXPRESSION_ADDITIVE_EXPRESSION) {
+        return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
+        // TODO: check return status
+        g_hash_table_insert(storage_hash_table, identifier, return_struct_rhs->mid_variable);
+
+        return_struct->status = STAUS_NORMAL;
+        return_struct->mid_variable = return_struct_rhs->mid_variable;
+        return return_struct;
+    } else if (expression_token->id == TOKEN_EXPRESSION_ADDITIVE_EXPRESSION) {
         g_assert(expression_token->children->len == 3);
         return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
         variable_t *lhs = return_struct_lhs->mid_variable;
@@ -646,6 +658,21 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
             return_struct->mid_variable = variable_numerical_new(&result);
             return return_struct;
         }
+    }
+
+    return NULL;
+}
+
+return_struct_t *resolve_assignment_identifier(token_t *lhs_token, GHashTable *context_hash_table, gchar **identifier,
+                                               GHashTable **storage_hash_table) {
+    return_struct_t *return_struct = return_struct_new();
+
+    if (lhs_token->id == TOKEN_LEXICAL_IDENTIFIER) {
+        *identifier = identifier_get_value(lhs_token)->str;
+        *storage_hash_table = context_hash_table;
+
+        return_struct->status = STAUS_NORMAL;
+        return return_struct;
     }
 
     return NULL;

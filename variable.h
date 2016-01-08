@@ -42,6 +42,7 @@ void        variable_free           (variable_t *variable);
 
 gchar*      variable_to_string      (variable_t *variable);
 gdouble     variable_to_numerical   (variable_t *variable);
+variable_t  *variable_to_object     (variable_t *variable);
 
 
 

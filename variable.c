@@ -120,3 +120,13 @@ variable_t *variable_object_new() {
 variable_t *variable_function_new(gpointer function_data, activation_record_t *AR) {
     return variable_new(VARIABLE_FUNC, function_data, AR);
 }
+
+variable_t *variable_to_object(variable_t *variable) {
+    if (variable->variable_type == VARIABLE_OBJECT) {
+        return variable;
+    } else {
+        variable_t *variable_object = variable_object_new();
+        g_hash_table_insert((GHashTable*) variable_object->variable_data, "", variable);
+        return variable_object;
+    }
+}

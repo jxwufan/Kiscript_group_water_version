@@ -36,6 +36,6 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 return_struct_t *evaluate_statement (token_t *statement_token,  activation_record_t *AR_Parent);
 return_struct_t *evaluate_program   (token_t *program_token,    activation_record_t *AR_parent);
 
-void resolve_assignment_identifier();
+return_struct_t *resolve_assignment_identifier(token_t *lhs_token, GHashTable *context_hash_table, gchar **identifier, GHashTable **storage_hash_table);
 
 #endif //KISCRIPT_INTERPRETER_H
