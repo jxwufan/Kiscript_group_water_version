@@ -189,6 +189,14 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
+            } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_PERCENT) {
+                gint lhs_int = (int)(*lhs_value);
+                gint rhs_int = (int)(*rhs_value);
+
+                result = lhs_int % rhs_int;
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_numerical_new(&result);
+                return return_struct;
             }
         }
     } else if (expression_token->id == TOKEN_EXPRESSION_SHIFT_EXPRESSION) {
