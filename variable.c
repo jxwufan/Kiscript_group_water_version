@@ -82,10 +82,15 @@ gchar* variable_to_string(variable_t *variable) {
 }
 
 gdouble variable_to_numerical(variable_t *variable) {
-    gdouble return_value;
+    gdouble return_value = NAN;
     if (variable->variable_type == VARIABLE_STRING) {
         gchar* str = (gchar*) variable->variable_data;
+        gchar* str_cmp = GC_malloc(TO_STRING_LEN);
         sscanf(str, "%lf", &return_value);
+        sprintf(str_cmp, "%lf", return_value);
+        if (g_strcmp0(str, str_cmp)!=0) {
+            return_value = NAN;
+        }
     } else if (variable->variable_type == VARIABLE_NUMERICAL) {
         return_value = *((gdouble*)variable->variable_data);
     } else if (variable->variable_type == VARIABLE_BOOL) {
