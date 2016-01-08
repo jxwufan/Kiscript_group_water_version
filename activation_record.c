@@ -44,8 +44,8 @@ gboolean activation_record_insert(activation_record_t *AR, gchar *key, gpointer 
         }
     }
     if (current_AR == NULL) {
-        activation_record_declare(AR, key);
-        return activation_record_insert(AR, key, value);
+        activation_record_declare(AR->static_link, key);
+        return activation_record_insert(AR->static_link, key, value);
     }
 
     return FALSE;

@@ -7,6 +7,7 @@
 #include <string.h>
 #include "variable.h"
 
+// TODO: This function may meaningless
 void variable_out_of_scope(variable_t *variable) {
     g_assert(variable != NULL);
     if (variable->variable_type == VARIABLE_FUNC) {
@@ -46,7 +47,7 @@ void variable_on_destory(variable_t *variable) {
     if (variable->variable_type == VARIABLE_FUNC) {
         g_hash_table_unref(variable->AR->AR_hash_table);
     } else if (variable->variable_type == VARIABLE_OBJECT){
-        // TODO: recollect attriube table memory
+        // TODO: collect attribute table memory
         g_hash_table_unref((GHashTable*) variable->variable_data);
     }
 }

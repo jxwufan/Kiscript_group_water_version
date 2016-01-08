@@ -25,7 +25,7 @@ typedef struct {
 return_struct_t *return_struct_new();
 
 gboolean is_lexical     (token_t *token);
-gboolean is_function(token_t *token);
+gboolean is_function    (token_t *token);
 gboolean is_expression  (token_t *token);
 gboolean is_statement   (token_t *token);
 gboolean is_program     (token_t *token);
@@ -35,5 +35,7 @@ return_struct_t *evaluate_lexicial  (token_t *lexical_token,    activation_recor
 return_struct_t *evaluate_expression(token_t *expression_token, activation_record_t *AR_Parent);
 return_struct_t *evaluate_statement (token_t *statement_token,  activation_record_t *AR_Parent);
 return_struct_t *evaluate_program   (token_t *program_token,    activation_record_t *AR_parent);
+
+void resolve_assignment_identifier();
 
 #endif //KISCRIPT_INTERPRETER_H
