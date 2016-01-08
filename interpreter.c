@@ -19,6 +19,7 @@ return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) 
 }
 
 return_struct_t *evaluate_program(token_t *program_token, activation_record_t *AR_parent) {
+    return_struct_t *return_struct = return_struct_new();
     activation_record_t *AR = activation_record_new(AR_parent, NULL);
     AR->static_link = AR;
     for (guint i  = 0; i < program_token->children->len; ++i) {
@@ -28,7 +29,28 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
             printf("%s\n", variable_to_string(return_struct->mid_variable));
         }
     }
-    return NULL;
+
+    activation_record_reach_end_of_scope(AR);
+
+    return_struct->status = STAUS_NORMAL;
+    return return_struct;
+}
+
+return_struct_t *evaluate_block(token_t *block_token, activation_record_t *AR_parent) {
+    return_struct_t *return_struct = return_struct_new();
+    activation_record_t *AR = activation_record_new(AR_parent, AR_parent->static_link);
+    for (guint i  = 0; i < block_token->children->len; ++i) {
+        return_struct_t *return_struct;
+        return_struct = evaluate_token(token_get_child(block_token, i), AR);
+        if (return_struct->mid_variable != NULL) {
+            printf("%s\n", variable_to_string(return_struct->mid_variable));
+        }
+    }
+
+    activation_record_reach_end_of_scope(AR);
+
+    return_struct->status = STAUS_NORMAL;
+    return return_struct;
 }
 
 return_struct_t *return_struct_new() {
@@ -71,6 +93,7 @@ gboolean is_expression(token_t *token) {
 gboolean is_statement(token_t *token) {
     return  token->id == TOKEN_STATEMENT_EXPRESSION_STATEMENT ||
             token->id == TOKEN_STATEMENT_VARIABLE_DECLARATION ||
+            token->id == TOKEN_STATEMENT_IF_STATEMENT         ||
             token->id == TOKEN_STATEMENT_VARIABLE_STATEMENT;
 }
 
@@ -119,7 +142,7 @@ gboolean is_function(token_t *token) {
 }
 
 return_struct_t *evaluate_statement(token_t *statement_token, activation_record_t *AR_Parent) {
-//    return_struct_t = return_struct_new();
+    return_struct_t *return_struct = return_struct_new();
 
     if (statement_token->id == TOKEN_STATEMENT_EXPRESSION_STATEMENT) {
         return evaluate_token(token_get_child(statement_token, 0), AR_Parent);
@@ -140,6 +163,26 @@ return_struct_t *evaluate_statement(token_t *statement_token, activation_record_
                 // TODO: handel exception
             }
         }
+    } else if (statement_token->id == TOKEN_STATEMENT_IF_STATEMENT) {
+        g_assert(statement_token->children->len >= 2);
+        g_assert(statement_token->children->len <= 3);
+        return_struct_t *condition_return_struct = evaluate_token(token_get_child(statement_token, 0), AR_Parent);
+        if (condition_return_struct->status != STAUS_NORMAL) {
+            return condition_return_struct;
+        } else if (condition_return_struct->mid_variable->variable_type != VARIABLE_BOOL) {
+            return_struct->status = STAUS_THROW;
+            // TODO: handel exception
+            return return_struct;
+        } else {
+            gboolean *condition = condition_return_struct->mid_variable->variable_data;
+            if (*condition) {
+                return evaluate_block(token_get_child(statement_token, 1), AR_Parent);
+            } else {
+                if (statement_token->children->len == 3) {
+                    return evaluate_block(token_get_child(statement_token, 2), AR_Parent);
+                }
+            }
+        }
     }
 
     return NULL;
@@ -155,7 +198,11 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
         // TODO: check return status
-        g_hash_table_insert(storage_hash_table, identifier, return_struct_rhs->mid_variable);
+        if (storage_hash_table != NULL) {
+            g_hash_table_insert(storage_hash_table, identifier, return_struct_rhs->mid_variable);
+        } else {
+            activation_record_insert(AR_Parent, identifier, return_struct_rhs->mid_variable);
+        }
 
         return_struct->status = STAUS_NORMAL;
         return_struct->mid_variable = return_struct_rhs->mid_variable;
@@ -714,7 +761,9 @@ return_struct_t *resolve_assignment_identifier(token_t *lhs_token, activation_re
 
     if (lhs_token->id == TOKEN_LEXICAL_IDENTIFIER) {
         *identifier = identifier_get_value(lhs_token)->str;
-        *storage_hash_table = AR->AR_hash_table;
+//        *storage_hash_table = AR->AR_hash_table;
+//        *identifier = NULL;
+        *storage_hash_table = NULL;
 
         return_struct->status = STAUS_NORMAL;
         return return_struct;

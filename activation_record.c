@@ -43,6 +43,7 @@ gboolean activation_record_insert(activation_record_t *AR, gchar *key, gpointer 
             current_AR = current_AR->dynamic_link;
         }
     }
+    printf("get NULL!\n");
     if (current_AR == NULL) {
         activation_record_declare(AR->static_link, key);
         return activation_record_insert(AR->static_link, key, value);
