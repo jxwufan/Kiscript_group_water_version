@@ -63,6 +63,7 @@ gboolean is_expression(token_t *token) {
            token->id == TOKEN_EXPRESSION_BITWISE_OR_EXPRESSION           ||
            token->id == TOKEN_EXPRESSION_BITWISE_XOR_EXPRESSION          ||
            token->id == TOKEN_EXPRESSION_OBJECT_LITERAL                  ||
+           token->id == TOKEN_EXPRESSION_PROPERTY_ACCESSOR               ||
            token->id == TOKEN_EXPRESSION_ASSIGNMENT_EXPRESSION;
 //           token->id == TOKEN_EXPRESSION_ARGUMENT_LIST;
 }
@@ -159,6 +160,24 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct->status = STAUS_NORMAL;
         return_struct->mid_variable = return_struct_rhs->mid_variable;
         return return_struct;
+    } else if (expression_token->id == TOKEN_EXPRESSION_PROPERTY_ACCESSOR) {
+        return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
+
+        if (return_struct_lhs->status == STAUS_NORMAL) {
+            g_assert(return_struct_lhs->mid_variable->variable_type == VARIABLE_OBJECT);
+
+            return_struct->mid_variable = variable_object_lookup(return_struct_lhs->mid_variable, token_get_child(expression_token, 1));
+            if (return_struct->mid_variable != NULL) {
+                return_struct->status = STAUS_NORMAL;
+                return return_struct;
+            } else {
+                // TODO: handel exception
+                return_struct->status = STAUS_THROW;
+                return return_struct;
+            }
+        } else if (return_struct_lhs->status == STAUS_THROW) {
+            // TODO: handel exception
+        }
     } else if (expression_token->id == TOKEN_EXPRESSION_OBJECT_LITERAL) {
         variable_t *object_varialbe = variable_object_new();
 
