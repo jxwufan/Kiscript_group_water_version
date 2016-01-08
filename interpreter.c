@@ -720,14 +720,29 @@ return_struct_t *resolve_assignment_identifier(token_t *lhs_token, activation_re
         return return_struct;
     } else if (lhs_token->id == TOKEN_EXPRESSION_PROPERTY_ACCESSOR) {
         token_t *object_token = token_get_child(lhs_token, 0);
+        token_t *identifier_token = token_get_child(lhs_token, 1);
         return_struct_t *object_return_struct = evaluate_token(object_token, AR);
         if (object_return_struct->status == STAUS_NORMAL) {
             g_assert(object_return_struct->mid_variable->variable_type == VARIABLE_OBJECT);
             // TODO: get object hash table
+
+            if (identifier_token->id == TOKEN_LEXICAL_IDENTIFIER) {
+                *identifier = identifier_get_value(identifier_token)->str;
+            } else {
+                return_struct_t *identifier_return_struct = evaluate_token(identifier_token, AR);
+                if (identifier_return_struct->status == STAUS_NORMAL) {
+                    *identifier = variable_to_string(identifier_return_struct->mid_variable);
+                } else {
+                    return_struct->status = STAUS_THROW;
+                    // TODO: handel exception
+                    return return_struct;
+                }
+            }
+            *storage_hash_table = object_return_struct->mid_variable->variable_data;
         }
     }
 
     return_struct->status = STAUS_THROW;
     // TODO: handel exception
-    return NULL;
+    return return_struct;
 }
