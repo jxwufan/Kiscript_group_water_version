@@ -418,20 +418,22 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
                 variable_t *result_variable = variable_numerical_new(&result);
 
-                activation_record_insert(AR_Parent, identifier_get_value(token_get_child(expression_token, 1))->str, result_variable);
+                activation_record_insert(AR_Parent, identifier_get_value(token_get_child(expression_token, 0))->str, result_variable);
 
+                result = result - 1;
                 return_struct->status = STAUS_NORMAL;
-                return_struct->mid_variable = variable_numerical_new((&result) - 1);
+                return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_DECREMENT) {
                 result = *operand_value - 1;
 
                 variable_t *result_variable = variable_numerical_new(&result);
 
-                activation_record_insert(AR_Parent, identifier_get_value(token_get_child(expression_token, 1))->str, result_variable);
+                activation_record_insert(AR_Parent, identifier_get_value(token_get_child(expression_token, 0))->str, result_variable);
 
+                result = result + 1;
                 return_struct->status = STAUS_NORMAL;
-                return_struct->mid_variable = variable_numerical_new((&result) + 1);
+                return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             }
         }
