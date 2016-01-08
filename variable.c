@@ -6,6 +6,9 @@
 #include <math.h>
 #include <string.h>
 #include "variable.h"
+#include "parser.h"
+#include "interpreter.h"
+#include "lexical_parser.h"
 
 // TODO: This function may meaningless
 void variable_out_of_scope(variable_t *variable) {
@@ -70,6 +73,9 @@ gchar* variable_to_string(variable_t *variable) {
         } else {
             sprintf(str, "false");
         }
+    } else if (variable->variable_type == VARIABLE_OBJECT) {
+        // TODO: implement with full description of object
+        sprintf(str, "Object");
     }
 
     return str;
@@ -121,12 +127,42 @@ variable_t *variable_function_new(gpointer function_data, activation_record_t *A
     return variable_new(VARIABLE_FUNC, function_data, AR);
 }
 
-variable_t *variable_to_object(variable_t *variable) {
-    if (variable->variable_type == VARIABLE_OBJECT) {
-        return variable;
-    } else {
-        variable_t *variable_object = variable_object_new();
-        g_hash_table_insert((GHashTable*) variable_object->variable_data, "", variable);
-        return variable_object;
+gboolean variable_object_insert(variable_t *object_variable, token_t *key, variable_t *value) {
+    g_assert(key->id == TOKEN_LEXICAL_NUMERIC_LITERAL || key->id == TOKEN_LEXICAL_STRING_LITERAL || TOKEN_LEXICAL_IDENTIFIER);
+    g_assert(object_variable->variable_type == VARIABLE_OBJECT);
+
+    if (key->id == TOKEN_LEXICAL_NUMERIC_LITERAL || key->id == TOKEN_LEXICAL_STRING_LITERAL) {
+        return_struct_t *return_struct_variable_key = evaluate_lexicial(key, NULL);
+
+        if (return_struct_variable_key->status == STAUS_NORMAL) {
+            return g_hash_table_insert((GHashTable *) object_variable->variable_data, variable_to_string(return_struct_variable_key->mid_variable),
+                                       value);
+        } else  {
+            return FALSE;
+        }
+    } else if (key->id == TOKEN_LEXICAL_IDENTIFIER) {
+        return g_hash_table_insert((GHashTable *) object_variable->variable_data, identifier_get_value(key)->str, value);
     }
+
+    return FALSE;
+}
+
+variable_t *variable_object_lookup(variable_t *object_variable, token_t *key) {
+    g_assert(key->id == TOKEN_LEXICAL_NUMERIC_LITERAL || key->id == TOKEN_LEXICAL_STRING_LITERAL || TOKEN_LEXICAL_IDENTIFIER);
+    g_assert(object_variable->variable_type == VARIABLE_OBJECT);
+
+    if (key->id == TOKEN_LEXICAL_NUMERIC_LITERAL || key->id == TOKEN_LEXICAL_STRING_LITERAL) {
+        return_struct_t *return_struct_variable_key = evaluate_lexicial(key, NULL);
+
+        if (return_struct_variable_key->status == STAUS_NORMAL) {
+            return g_hash_table_lookup((GHashTable *) object_variable->variable_data,
+                                       variable_to_string(return_struct_variable_key->mid_variable));
+        } else {
+            return NULL;
+        }
+    } else if (key->id == TOKEN_LEXICAL_IDENTIFIER) {
+        return g_hash_table_lookup((GHashTable *) object_variable->variable_data, identifier_get_value(key)->str);
+    }
+
+    return NULL;
 }

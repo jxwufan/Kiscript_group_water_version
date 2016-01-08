@@ -62,6 +62,7 @@ gboolean is_expression(token_t *token) {
            token->id == TOKEN_EXPRESSION_BITWISE_AND_EXPRESSION          ||
            token->id == TOKEN_EXPRESSION_BITWISE_OR_EXPRESSION           ||
            token->id == TOKEN_EXPRESSION_BITWISE_XOR_EXPRESSION          ||
+           token->id == TOKEN_EXPRESSION_OBJECT_LITERAL                  ||
            token->id == TOKEN_EXPRESSION_ASSIGNMENT_EXPRESSION;
 //           token->id == TOKEN_EXPRESSION_ARGUMENT_LIST;
 }
@@ -106,6 +107,8 @@ return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *
 
         return return_struct;
     }
+
+    return_struct->status = STAUS_THROW;
     return NULL;
 }
 
@@ -146,7 +149,8 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
     if (expression_token->id == TOKEN_EXPRESSION_ASSIGNMENT_EXPRESSION) {
         gchar *identifier;
         GHashTable *storage_hash_table;
-        resolve_assignment_identifier(token_get_child(expression_token, 0), AR_Parent->AR_hash_table, &identifier, &storage_hash_table);
+        resolve_assignment_identifier(token_get_child(expression_token, 0), AR_Parent->AR_hash_table, &identifier,
+                                      &storage_hash_table);
 
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
         // TODO: check return status
@@ -154,6 +158,26 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
         return_struct->status = STAUS_NORMAL;
         return_struct->mid_variable = return_struct_rhs->mid_variable;
+        return return_struct;
+    } else if (expression_token->id == TOKEN_EXPRESSION_OBJECT_LITERAL) {
+        variable_t *object_varialbe = variable_object_new();
+
+        for (guint i = 0; i < expression_token->children->len; ++i) {
+            token_t *attribute_token = token_get_child(expression_token, i);
+
+            token_t *lhs = token_get_child(attribute_token, 0);
+            return_struct_t *return_struct_rhs = evaluate_token(token_get_child(attribute_token, 1), AR_Parent);
+
+            if (return_struct_rhs->status == STAUS_NORMAL) {
+                variable_object_insert(object_varialbe, lhs, return_struct_rhs->mid_variable);
+            } else {
+                // TODO: handel exception
+            }
+        }
+
+        return_struct->status = STAUS_NORMAL;
+        return_struct->mid_variable = object_varialbe;
+
         return return_struct;
     } else if (expression_token->id == TOKEN_EXPRESSION_ADDITIVE_EXPRESSION) {
         g_assert(expression_token->children->len == 3);
@@ -660,7 +684,9 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         }
     }
 
-    return NULL;
+    return_struct->status = STAUS_THROW;
+    // TODO: handel exception
+    return return_struct;
 }
 
 return_struct_t *resolve_assignment_identifier(token_t *lhs_token, GHashTable *context_hash_table, gchar **identifier,
