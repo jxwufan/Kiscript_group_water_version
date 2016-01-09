@@ -49,6 +49,7 @@ void variable_on_destory(variable_t *variable) {
         return;
     if (variable->variable_type == VARIABLE_FUNC) {
         g_hash_table_unref(variable->AR->AR_hash_table);
+        g_hash_table_unref((GHashTable*) variable->variable_data);
     } else if (variable->variable_type == VARIABLE_OBJECT){
         // TODO: collect attribute table memory
         g_hash_table_unref((GHashTable*) variable->variable_data);
@@ -167,7 +168,10 @@ variable_t *variable_object_new() {
 }
 
 variable_t *variable_function_new(gpointer function_data, activation_record_t *AR) {
-    return variable_new(VARIABLE_FUNC, function_data, AR);
+    GHashTable *function_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) variable_on_destory);
+
+    g_hash_table_insert(function_table, "", function_data);
+    return variable_new(VARIABLE_FUNC, function_table, AR);
 }
 
 gboolean variable_object_insert(variable_t *object_variable, token_t *key, variable_t *value) {
