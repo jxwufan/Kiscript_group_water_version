@@ -58,11 +58,13 @@ GPtrArray *lexical_parse(gchar *input, token_t **error_p) {
  *     BooleanLiteral
  *     NumericLiteral
  *     StringLiteral
- *     Punctuator
+ *     //Punctuator
  *     WhiteSpace
  *     LineTerminator
  *     SingleLineComment
  *     MultiLineComment
+ *     // NOTE: Punctuator is moved down for disambiguating with Comment.
+ *     Punctuator
  */
 
 token_t *lexical_token(gchar **input_p) {
@@ -77,11 +79,11 @@ token_t *lexical_token(gchar **input_p) {
     tokenize_and_return_if_is_first(input_p, identifier)
     tokenize_and_return_if_is_first(input_p, numeric_literal)
     tokenize_and_return_if_is_first(input_p, string_literal)
-    tokenize_and_return_if_is_first(input_p, punctuator)
     tokenize_and_return_if_is_first(input_p, white_space)
     tokenize_and_return_if_is_first(input_p, line_terminator)
     tokenize_and_return_if_is_first(input_p, single_line_comment)
     tokenize_and_return_if_is_first(input_p, multi_line_comment)
+    tokenize_and_return_if_is_first(input_p, punctuator)
 
     return error_new_lexical(ERROR_LEXICAL_LEXICAL_TOKEN, *input_p);
 }

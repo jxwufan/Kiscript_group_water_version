@@ -458,8 +458,14 @@ token_t *for_statement(GPtrArray *input, gsize *position_p) {
 
     } else {
 
-        tokenize_and_add_child_or_free_parent_and_return_error(input,
-                position_p, expression, for_statement_token)
+        if (token_is_first_punctuator(input, *position_p, PUNCTUATOR_SEMICOLON)
+                || token_is_first_punctuator(input, *position_p,
+                                              PUNCTUATOR_COLON)) {
+            token_add_child(for_statement_token, NULL);
+        } else {
+            tokenize_and_add_child_or_free_parent_and_return_error(input,
+                    position_p, expression, for_statement_token)
+        }
 
         if (token_is_first_punctuator(input, *position_p, PUNCTUATOR_COLON)) {
             // NOTE: LeftHandSideExpression not checked here because by the
