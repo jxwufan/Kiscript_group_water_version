@@ -177,12 +177,14 @@ variable_t *variable_function_new(gpointer function_data, activation_record_t *A
 
     g_hash_table_insert(function_table, "", function_data);
     g_hash_table_insert(function_table, "prototype", prototype_variable);
+    g_hash_table_insert(function_table, "__proto__", NULL);
 
     g_hash_table_ref(AR->AR_hash_table);
 
     variable_t *function_variable = variable_new(VARIABLE_FUNC, function_table, AR);
 
     g_hash_table_insert((GHashTable*) prototype_variable->variable_data, "constructor", function_variable);
+    g_hash_table_insert((GHashTable*) prototype_variable->variable_data, "__proto__", NULL);
 
     return function_variable;
 }
@@ -232,7 +234,7 @@ variable_t *prototype_chain_lookup(variable_t *object_variable, gchar *attribute
         return_variable = g_hash_table_lookup((GHashTable*) object_variable->variable_data, attribute_identifier);
         if (return_variable != NULL)
             return return_variable;
-        object_variable = g_hash_table_lookup((GHashTable*) object_variable->variable_data, "prototype");
+        object_variable = g_hash_table_lookup((GHashTable*) object_variable->variable_data, "__proto__");
     }
     return NULL;
 }
