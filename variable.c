@@ -196,13 +196,15 @@ variable_t *variable_object_lookup(variable_t *object_variable, token_t *key) {
         return_struct_t *return_struct_variable_key = evaluate_token(key, NULL);
 
         if (return_struct_variable_key->status == STAUS_NORMAL) {
-            return g_hash_table_lookup((GHashTable *) object_variable->variable_data,
-                                       variable_to_string(return_struct_variable_key->mid_variable));
+            //TODO: use prototype here
+//            return g_hash_table_lookup((GHashTable *) object_variable->variable_data,
+//                                       variable_to_string(return_struct_variable_key->mid_variable));
         } else {
             return NULL;
         }
     } else {
-        return g_hash_table_lookup((GHashTable *) object_variable->variable_data, identifier_get_value(key)->str);
+        // TODO: use prototype here
+//        return g_hash_table_lookup((GHashTable *) object_variable->variable_data, identifier_get_value(key)->str);
     }
 
     return NULL;
