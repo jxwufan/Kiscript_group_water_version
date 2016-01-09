@@ -15,6 +15,8 @@ return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) 
         return evaluate_expression(token, AR_parent);
     } else if (is_statement(token)) {
         return evaluate_statement(token, AR_parent);
+    } else if (is_function(token)) {
+        return evaluate_function(token, AR_parent);
     }
 
     printf("Error token!");
@@ -153,7 +155,8 @@ return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *
 }
 
 gboolean is_function(token_t *token) {
-    return token->id == TOKEN_FUNCTION_FUNCTION_DECLARATION;
+    return token->id == TOKEN_FUNCTION_FUNCTION_DECLARATION ||
+           token->id == TOKEN_FUNCTION_FUNCTION_EXPRESSION;
     return FALSE;
 }
 
@@ -256,6 +259,12 @@ return_struct_t *evaluate_statement(token_t *statement_token, activation_record_
                 } else if (for_return_struct->status == STAUS_BREAK) {
                     break;
                 } else if (for_return_struct->status == STAUS_CONTINUE) {
+                    if (for_loop_end_token != NULL) {
+                        for_return_struct = evaluate_token(for_loop_end_token, AR);
+                        if (for_return_struct->status != STAUS_NORMAL) {
+                            // TODO: handel abnormal status
+                        }
+                    }
                     continue;
                 }
             }
@@ -315,7 +324,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
 
         if (return_struct_lhs->status == STAUS_NORMAL) {
-            g_assert(return_struct_lhs->mid_variable->variable_type == VARIABLE_OBJECT);
+            g_assert(return_struct_lhs->mid_variable->variable_type == VARIABLE_OBJECT || return_struct_lhs->mid_variable->variable_type == VARIABLE_FUNC );
 
             return_struct->mid_variable = variable_object_lookup(return_struct_lhs->mid_variable, token_get_child(expression_token, 1));
             if (return_struct->mid_variable != NULL) {
@@ -934,7 +943,7 @@ return_struct_t *resolve_assignment_identifier(token_t *lhs_token, activation_re
         token_t *identifier_token = token_get_child(lhs_token, 1);
         return_struct_t *object_return_struct = evaluate_token(object_token, AR);
         if (object_return_struct->status == STAUS_NORMAL) {
-            g_assert(object_return_struct->mid_variable->variable_type == VARIABLE_OBJECT);
+            g_assert(object_return_struct->mid_variable->variable_type == VARIABLE_OBJECT || object_return_struct->mid_variable->variable_type == VARIABLE_FUNC);
 
             if (identifier_token->id == TOKEN_LEXICAL_IDENTIFIER) {
                 *identifier = identifier_get_value(identifier_token)->str;
@@ -962,4 +971,23 @@ gboolean need_return_to_invoker(return_struct_t *return_struct) {
            return_struct->status == STAUS_CONTINUE  ||
            return_struct->status == STAUS_BREAK     ||
            return_struct->status == STAUS_RETURN;
+}
+
+variable_t *generate_function_variable(token_t *function_token, activation_record_t *AR_parent) {
+    variable_t *function_variable = variable_function_new(function_token, AR_parent);
+    return function_variable;
+}
+
+return_struct_t *evaluate_function(token_t *function_token, activation_record_t *AR_parent) {
+    return_struct_t *return_struct = return_struct_new();
+    variable_t *function_variable = generate_function_variable(function_token, AR_parent);
+
+    return_struct->status = STAUS_NORMAL;
+    return_struct->mid_variable = function_variable;
+
+    if (function_token->id == TOKEN_FUNCTION_FUNCTION_DECLARATION) {
+        activation_record_insert(AR_parent, identifier_get_value(token_get_child(function_token, 0))->str, function_variable);
+    }
+
+    return return_struct;
 }

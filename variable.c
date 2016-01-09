@@ -32,7 +32,7 @@ variable_t *variable_clone(variable_t *variable) {
     new_variable->variable_type = variable->variable_type;
     new_variable->variable_data = variable->variable_data;
 
-    if (variable->variable_type == VARIABLE_OBJECT) {
+    if (variable->variable_type == VARIABLE_OBJECT || variable->variable_type == VARIABLE_FUNC) {
         g_hash_table_ref((GHashTable*) variable->variable_data);
     }
 
@@ -50,7 +50,7 @@ void variable_on_destory(variable_t *variable) {
     if (variable->variable_type == VARIABLE_FUNC) {
         g_hash_table_unref(variable->AR->AR_hash_table);
         g_hash_table_unref((GHashTable*) variable->variable_data);
-    } else if (variable->variable_type == VARIABLE_OBJECT){
+    } else if (variable->variable_type == VARIABLE_OBJECT || variable->variable_type == VARIABLE_FUNC){
         // TODO: collect attribute table memory
         g_hash_table_unref((GHashTable*) variable->variable_data);
     }
@@ -77,6 +77,9 @@ gchar* variable_to_string(variable_t *variable) {
     } else if (variable->variable_type == VARIABLE_OBJECT) {
         // TODO: implement with full description of object
         sprintf(str, "Object");
+    } else if (variable->variable_type == VARIABLE_FUNC) {
+        // TODO: implement with full description of function
+        sprintf(str, "Func");
     }
 
     return str;
@@ -127,7 +130,7 @@ gdouble variable_to_numerical(variable_t *variable) {
 
 void variable_free(variable_t *variable) {
     if (variable->variable_data != NULL) {
-        if (variable->variable_type != VARIABLE_OBJECT) {
+        if (variable->variable_type != VARIABLE_OBJECT && variable->variable_type != VARIABLE_FUNC) {
             GC_FREE(variable->variable_data);
         } else {
             g_hash_table_unref((GHashTable*) variable->variable_data);
@@ -170,12 +173,22 @@ variable_t *variable_object_new() {
 variable_t *variable_function_new(gpointer function_data, activation_record_t *AR) {
     GHashTable *function_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) variable_on_destory);
 
+    variable_t *prototype_variable = variable_object_new();
+
     g_hash_table_insert(function_table, "", function_data);
-    return variable_new(VARIABLE_FUNC, function_table, AR);
+    g_hash_table_insert(function_table, "prototype", prototype_variable);
+
+    g_hash_table_ref(AR->AR_hash_table);
+
+    variable_t *function_variable = variable_new(VARIABLE_FUNC, function_table, AR);
+
+    g_hash_table_insert((GHashTable*) prototype_variable->variable_data, "constructor", function_variable);
+
+    return function_variable;
 }
 
 gboolean variable_object_insert(variable_t *object_variable, token_t *key, variable_t *value) {
-    g_assert(object_variable->variable_type == VARIABLE_OBJECT);
+    g_assert(object_variable->variable_type == VARIABLE_OBJECT || object_variable->variable_type == VARIABLE_FUNC);
 
     if ( key->id != TOKEN_LEXICAL_IDENTIFIER) {
         return_struct_t *return_struct_variable_key = evaluate_token(key, NULL);
@@ -194,7 +207,7 @@ gboolean variable_object_insert(variable_t *object_variable, token_t *key, varia
 }
 
 variable_t *variable_object_lookup(variable_t *object_variable, token_t *key) {
-    g_assert(object_variable->variable_type == VARIABLE_OBJECT);
+    g_assert(object_variable->variable_type == VARIABLE_OBJECT || object_variable->variable_type == VARIABLE_FUNC);
 
     if (key->id != TOKEN_LEXICAL_IDENTIFIER) {
         return_struct_t *return_struct_variable_key = evaluate_token(key, NULL);

@@ -29,7 +29,7 @@ gboolean is_lexical     (token_t *token);
 gboolean is_function    (token_t *token);
 gboolean is_expression  (token_t *token);
 gboolean is_statement   (token_t *token);
-gboolean is_program     (token_t *token);
+//gboolean is_program     (token_t *token); meaning less
 
 gboolean need_return_to_invoker (return_struct_t *return_struct);
 
@@ -38,9 +38,11 @@ return_struct_t *evaluate_lexicial  (token_t *lexical_token,    activation_recor
 return_struct_t *evaluate_expression(token_t *expression_token, activation_record_t *AR_Parent);
 return_struct_t *evaluate_statement (token_t *statement_token,  activation_record_t *AR_Parent);
 return_struct_t *evaluate_program   (token_t *program_token,    activation_record_t *AR_parent);
-return_struct_t *evaluate_function  (token_t *function_token,   activation_record_t *AR_parent);
+return_struct_t *evaluate_function  (token_t *function_token,   activation_record_t *AR_parent); //TODO: add function running interface
 return_struct_t *evaluate_block     (token_t *block_token,      activation_record_t *AR_parent);
 
 return_struct_t *resolve_assignment_identifier(token_t *lhs_token, activation_record_t *AR, gchar **identifier, GHashTable **storage_hash_table);
+
+variable_t *generate_function_variable (token_t *function_token, activation_record_t *AR_parent);
 
 #endif //KISCRIPT_INTERPRETER_H
