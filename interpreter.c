@@ -45,6 +45,12 @@ return_struct_t *evaluate_block(token_t *block_token, activation_record_t *AR_pa
         if (return_struct->mid_variable != NULL) {
             printf("%s\n", variable_to_string(return_struct->mid_variable));
         }
+
+        if (need_return_to_invoker(return_struct)) {
+            activation_record_reach_end_of_scope(AR);
+
+            return return_struct;
+        }
     }
 
     activation_record_reach_end_of_scope(AR);
@@ -87,13 +93,15 @@ gboolean is_expression(token_t *token) {
            token->id == TOKEN_EXPRESSION_OBJECT_LITERAL                  ||
            token->id == TOKEN_EXPRESSION_PROPERTY_ACCESSOR               ||
            token->id == TOKEN_EXPRESSION_ASSIGNMENT_EXPRESSION;
-//           token->id == TOKEN_EXPRESSION_ARGUMENT_LIST;
 }
 
 gboolean is_statement(token_t *token) {
     return  token->id == TOKEN_STATEMENT_EXPRESSION_STATEMENT ||
             token->id == TOKEN_STATEMENT_VARIABLE_DECLARATION ||
             token->id == TOKEN_STATEMENT_IF_STATEMENT         ||
+            token->id == TOKEN_STATEMENT_RETURN_STATEMENT     ||
+            token->id == TOKEN_STATEMENT_BREAK_STATEMENT      ||
+            token->id == TOKEN_STATEMENT_CONTINUE_STATEMENT   ||
             token->id == TOKEN_STATEMENT_VARIABLE_STATEMENT;
 }
 
@@ -183,6 +191,18 @@ return_struct_t *evaluate_statement(token_t *statement_token, activation_record_
                 }
             }
         }
+    } else if (statement_token->id == TOKEN_STATEMENT_RETURN_STATEMENT) {
+        return_struct_t *return_value_return_struct = evaluate_token(token_get_child(statement_token, 0), AR_Parent);
+
+        return_struct->mid_variable = return_value_return_struct->mid_variable;
+        return_struct->status = STAUS_RETURN;
+        return return_struct;
+    } else if (statement_token->id == TOKEN_STATEMENT_CONTINUE_STATEMENT) {
+        return_struct->status = STAUS_CONTINUE;
+        return return_struct;
+    } else if (statement_token->id == TOKEN_STATEMENT_BREAK_STATEMENT) {
+        return_struct->status = STAUS_BREAK;
+        return return_struct;
     }
 
     return NULL;
@@ -820,8 +840,6 @@ return_struct_t *resolve_assignment_identifier(token_t *lhs_token, activation_re
 
     if (lhs_token->id == TOKEN_LEXICAL_IDENTIFIER) {
         *identifier = identifier_get_value(lhs_token)->str;
-//        *storage_hash_table = AR->AR_hash_table;
-//        *identifier = NULL;
         *storage_hash_table = NULL;
 
         return_struct->status = STAUS_NORMAL;
@@ -832,7 +850,6 @@ return_struct_t *resolve_assignment_identifier(token_t *lhs_token, activation_re
         return_struct_t *object_return_struct = evaluate_token(object_token, AR);
         if (object_return_struct->status == STAUS_NORMAL) {
             g_assert(object_return_struct->mid_variable->variable_type == VARIABLE_OBJECT);
-            // TODO: get object hash table
 
             if (identifier_token->id == TOKEN_LEXICAL_IDENTIFIER) {
                 *identifier = identifier_get_value(identifier_token)->str;
@@ -853,4 +870,11 @@ return_struct_t *resolve_assignment_identifier(token_t *lhs_token, activation_re
     return_struct->status = STAUS_THROW;
     // TODO: handel exception
     return return_struct;
+}
+
+gboolean need_return_to_invoker(return_struct_t *return_struct) {
+    return return_struct->status == STAUS_THROW     ||
+           return_struct->status == STAUS_CONTINUE  ||
+           return_struct->status == STAUS_BREAK     ||
+           return_struct->status == STAUS_RETURN;
 }

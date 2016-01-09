@@ -13,7 +13,8 @@ typedef enum {
     STAUS_NORMAL,
     STAUS_THROW,
     STAUS_CONTINUE,
-    STAUS_BREAK
+    STAUS_BREAK,
+    STAUS_RETURN,
 } return_status_t;
 
 typedef struct {
@@ -29,6 +30,8 @@ gboolean is_function    (token_t *token);
 gboolean is_expression  (token_t *token);
 gboolean is_statement   (token_t *token);
 gboolean is_program     (token_t *token);
+
+gboolean need_return_to_invoker (return_struct_t *return_struct);
 
 return_struct_t *evaluate_token     (token_t *token,            activation_record_t *AR_parent);
 return_struct_t *evaluate_lexicial  (token_t *lexical_token,    activation_record_t *AR_Parent);
