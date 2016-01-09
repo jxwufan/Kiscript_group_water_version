@@ -1,10 +1,12 @@
-function a() {
-    return 123;
-}
+var b = {};
+var a = 0;
+b.a = function(a, b, c) {
+    var a = 5;
 
-var b = function(a, b, c) {
-    return 234;
+    return function() {return a;};
 };
 
-a.prototype.constructor.prototype;
-b.prototype;
+var d;
+d = b.a(1,2,3);
+//d();
+d = 123;

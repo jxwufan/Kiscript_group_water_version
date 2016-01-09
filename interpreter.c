@@ -3,12 +3,24 @@
 //
 
 #include <stdlib.h>
+#include <string.h>
 #include "interpreter.h"
 #include "parser.h"
 #include "lexical_parser.h"
 #include "variable.h"
 
 return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) {
+    if (token->id == TOKEN_LEXICAL_KEYWORD && *((keyword_id_t *) token->data) == KEYWORD_THIS) {
+        token_t *this_token = GC_malloc(sizeof(token_t));
+        GString *this_string = GC_malloc(sizeof(GString));
+        this_string->str = GC_malloc(sizeof(gchar) * 10);
+        strcpy(this_string->str, "this");
+        this_token->data = this_string;
+        this_token->id = TOKEN_LEXICAL_IDENTIFIER;
+        this_token->children = token->children;
+        token = this_token;
+    }
+
     if (is_lexical(token)) {
         return evaluate_lexicial(token, AR_parent);
     } else if (is_expression(token)) {
@@ -19,6 +31,7 @@ return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) 
         return evaluate_function(token, AR_parent);
     }
 
+    printf("%s\n", token_to_string(token)->str);
     printf("Error token!");
     return NULL;
 }
@@ -31,7 +44,12 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
         return_struct_t *return_struct;
         return_struct = evaluate_token(token_get_child(program_token, i), AR);
         if (return_struct->mid_variable != NULL) {
-            printf("%s\n", variable_to_string(return_struct->mid_variable));
+            printf("%s ", variable_to_string(return_struct->mid_variable));
+        }
+        if (return_struct->end_variable != NULL) {
+            printf("%s\n", variable_to_string(return_struct->end_variable));
+        } else {
+            printf("\n");
         }
     }
 
@@ -181,7 +199,12 @@ return_struct_t *evaluate_statement(token_t *statement_token, activation_record_
             } else if (return_struct->status == STAUS_THROW) {
                 // TODO: handel exception
             }
+        } else {
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = NULL;
+            return return_struct;
         }
+
     } else if (statement_token->id == TOKEN_STATEMENT_IF_STATEMENT) {
         g_assert(statement_token->children->len >= 2);
         g_assert(statement_token->children->len <= 3);
@@ -320,6 +343,50 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct->status = STAUS_NORMAL;
         return_struct->mid_variable = return_struct_rhs->mid_variable;
         return return_struct;
+    } else if (expression_token->id == TOKEN_EXPRESSION_CALL_EXPRESSION) {
+        variable_t *callee_variable;
+        variable_t *caller_variable;
+        return_struct = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
+        if (return_struct->status != STAUS_NORMAL) {
+            return return_struct;
+        }
+
+        g_assert(return_struct->mid_variable->variable_type == VARIABLE_FUNC);
+        callee_variable = return_struct->mid_variable;
+
+        if (return_struct->end_variable != NULL) {
+            caller_variable = return_struct->end_variable;
+        } else {
+            caller_variable = variable_new(VARIABLE_OBJECT, AR_Parent->AR_hash_table, NULL);
+        }
+        g_assert(caller_variable->variable_type == VARIABLE_OBJECT);
+
+        AR_Parent = callee_variable->AR;
+        activation_record_t *AR = activation_record_new(AR_Parent, AR_Parent->static_link);
+
+        activation_record_insert(AR, "this", caller_variable);
+        g_hash_table_ref(caller_variable->variable_data);
+
+        token_t *call_argument_value_list       = token_get_child(expression_token, 1);
+        token_t *call_argument_identifiler_list = token_get_child((token_t *)g_hash_table_lookup((GHashTable *)callee_variable->variable_data, ""), 1);
+
+        for (guint i = 0; i < MIN(call_argument_value_list->children->len, call_argument_identifiler_list->children->len); ++i) {
+            return_struct = evaluate_token(token_get_child(call_argument_value_list, i), AR_Parent);
+            if (return_struct->status != STAUS_NORMAL) {
+                //TODO: exception
+                exit(-1);
+            }
+            activation_record_insert(AR, identifier_get_value(token_get_child(call_argument_identifiler_list, i))->str, return_struct->mid_variable);
+        }
+
+        return_struct = evaluate_call_function(token_get_child((token_t *)g_hash_table_lookup((GHashTable *)callee_variable->variable_data, ""), 2), AR);
+        if (return_struct->status != STAUS_NORMAL) {
+            //TODO: exception
+            exit(-1);
+        }
+        activation_record_reach_end_of_scope(AR);
+
+        return return_struct;
     } else if (expression_token->id == TOKEN_EXPRESSION_PROPERTY_ACCESSOR) {
         return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
 
@@ -329,6 +396,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
             return_struct->mid_variable = variable_object_lookup(return_struct_lhs->mid_variable, token_get_child(expression_token, 1));
             if (return_struct->mid_variable != NULL) {
                 return_struct->status = STAUS_NORMAL;
+                return_struct->end_variable = return_struct_lhs->mid_variable;
                 return return_struct;
             } else {
                 // TODO: handel exception
@@ -975,6 +1043,8 @@ gboolean need_return_to_invoker(return_struct_t *return_struct) {
 
 variable_t *generate_function_variable(token_t *function_token, activation_record_t *AR_parent) {
     variable_t *function_variable = variable_function_new(function_token, AR_parent);
+    g_hash_table_ref(AR_parent->AR_hash_table);
+
     return function_variable;
 }
 
@@ -989,5 +1059,22 @@ return_struct_t *evaluate_function(token_t *function_token, activation_record_t 
         activation_record_insert(AR_parent, identifier_get_value(token_get_child(function_token, 0))->str, function_variable);
     }
 
+    return return_struct;
+}
+
+return_struct_t *evaluate_call_function(token_t *function_body_token, activation_record_t *AR_parent) {
+    return_struct_t *return_struct = return_struct_new();
+    for (guint i  = 0; i < function_body_token->children->len; ++i) {
+        return_struct_t *return_struct;
+        return_struct = evaluate_token(token_get_child(function_body_token, i), AR_parent);
+        if (return_struct->mid_variable != NULL) {
+            printf("%s\n", variable_to_string(return_struct->mid_variable));
+        }
+
+        if (return_struct->status == STAUS_RETURN)
+            break;
+    }
+
+    return_struct->status = STAUS_NORMAL;
     return return_struct;
 }
