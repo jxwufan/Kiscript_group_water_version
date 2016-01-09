@@ -2,6 +2,7 @@
 // Created by fan wu on 1/5/16.
 //
 
+#include <stdlib.h>
 #include "interpreter.h"
 #include "parser.h"
 #include "lexical_parser.h"
@@ -15,6 +16,8 @@ return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) 
     } else if (is_statement(token)) {
         return evaluate_statement(token, AR_parent);
     }
+
+    printf("Error token!");
     return NULL;
 }
 
@@ -96,12 +99,15 @@ gboolean is_expression(token_t *token) {
 }
 
 gboolean is_statement(token_t *token) {
-    return  token->id == TOKEN_STATEMENT_EXPRESSION_STATEMENT ||
-            token->id == TOKEN_STATEMENT_VARIABLE_DECLARATION ||
-            token->id == TOKEN_STATEMENT_IF_STATEMENT         ||
-            token->id == TOKEN_STATEMENT_RETURN_STATEMENT     ||
-            token->id == TOKEN_STATEMENT_BREAK_STATEMENT      ||
-            token->id == TOKEN_STATEMENT_CONTINUE_STATEMENT   ||
+    return  token->id == TOKEN_STATEMENT_EXPRESSION_STATEMENT       ||
+            token->id == TOKEN_STATEMENT_VARIABLE_DECLARATION       ||
+            token->id == TOKEN_STATEMENT_IF_STATEMENT               ||
+            token->id == TOKEN_STATEMENT_VARIABLE_DECLARATION_LIST  ||
+            token->id == TOKEN_STATEMENT_FOR_STATEMENT              ||
+            token->id == TOKEN_STATEMENT_RETURN_STATEMENT           ||
+            token->id == TOKEN_STATEMENT_BLOCK                      ||
+            token->id == TOKEN_STATEMENT_BREAK_STATEMENT            ||
+            token->id == TOKEN_STATEMENT_CONTINUE_STATEMENT         ||
             token->id == TOKEN_STATEMENT_VARIABLE_STATEMENT;
 }
 
@@ -120,6 +126,8 @@ return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *
         } else {
             return_struct->status = STAUS_THROW;
             // TODO: return exception
+            printf("No varialbe named %s\n", identifier_get_value(lexical_token)->str);
+            exit(-1);
         }
 
         return return_struct;
@@ -186,11 +194,15 @@ return_struct_t *evaluate_statement(token_t *statement_token, activation_record_
             if (*condition) {
                 return evaluate_block(token_get_child(statement_token, 1), AR_Parent);
             } else {
-                if (statement_token->children->len == 3) {
+                if (statement_token->children->len == 3 && token_get_child(statement_token, 2) != NULL) {
                     return evaluate_block(token_get_child(statement_token, 2), AR_Parent);
                 }
             }
+            return_struct->status = STAUS_NORMAL;
+            return return_struct;
         }
+    } else if (statement_token->id == TOKEN_STATEMENT_BLOCK) {
+        return evaluate_block(statement_token, AR_Parent);
     } else if (statement_token->id == TOKEN_STATEMENT_RETURN_STATEMENT) {
         return_struct_t *return_value_return_struct = evaluate_token(token_get_child(statement_token, 0), AR_Parent);
 
@@ -202,6 +214,78 @@ return_struct_t *evaluate_statement(token_t *statement_token, activation_record_
         return return_struct;
     } else if (statement_token->id == TOKEN_STATEMENT_BREAK_STATEMENT) {
         return_struct->status = STAUS_BREAK;
+        return return_struct;
+    } else if (statement_token->id == TOKEN_STATEMENT_FOR_STATEMENT) {
+        activation_record_t *AR = activation_record_new(AR_Parent, AR_Parent->static_link);
+        token_t *for_init_token         = token_get_child(statement_token, 0);
+        token_t *for_condition_token    = token_get_child(statement_token, 1);
+        token_t *for_loop_end_token     = token_get_child(statement_token, 2);
+        token_t *for_block_token        = token_get_child(statement_token, 3);
+
+        return_struct_t *for_return_struct;
+        if (for_init_token != NULL) {
+            for_return_struct = evaluate_token(for_init_token, AR);
+            if (for_return_struct->status != STAUS_NORMAL) {
+                // TODO: handel abnormal status
+            }
+        }
+        while (TRUE) {
+            if (for_condition_token != NULL) {
+                for_return_struct = evaluate_token(for_condition_token, AR);
+                if (for_return_struct->status != STAUS_NORMAL) {
+                    // TODO: handel abnormal status
+                    printf("For condition abnormal");
+                    exit(-1);
+                }
+                if (for_return_struct->mid_variable->variable_type != VARIABLE_BOOL) {
+                    // TODO: handel abnormal status
+                    printf("For condition type abnormal");
+                    exit(-1);
+                }
+                gboolean *condition = (gboolean *) for_return_struct->mid_variable->variable_data;
+//                printf("%s\n", variable_to_string(for_return_struct->mid_variable));
+//                printf("%s\n", token_to_string(for_condition_token)->str);
+                if (!*condition)
+                    break;
+            }
+            for_return_struct = evaluate_block(for_block_token, AR);
+            if (need_return_to_invoker(for_return_struct)) {
+                if (for_return_struct->status == STAUS_RETURN) {
+                    activation_record_reach_end_of_scope(AR);
+                    return for_return_struct;
+                } else if (for_return_struct->status == STAUS_BREAK) {
+                    break;
+                } else if (for_return_struct->status == STAUS_CONTINUE) {
+                    continue;
+                }
+            }
+
+            if (for_loop_end_token != NULL) {
+                for_return_struct = evaluate_token(for_loop_end_token, AR);
+                if (for_return_struct->status != STAUS_NORMAL) {
+                    // TODO: handel abnormal status
+                }
+            }
+        }
+
+        activation_record_reach_end_of_scope(AR);
+
+        return_struct->status = STAUS_NORMAL;
+        return return_struct;
+    } else if (statement_token->id == TOKEN_STATEMENT_VARIABLE_DECLARATION_LIST) {
+        for (guint i  = 0; i < statement_token->children->len; ++i) {
+            return_struct_t *return_struct;
+            return_struct = evaluate_token(token_get_child(statement_token, i), AR_Parent);
+            if (return_struct->mid_variable != NULL) {
+//                printf("INIT: %s\n", variable_to_string(return_struct->mid_variable));
+            }
+
+            if (need_return_to_invoker(return_struct)) {
+                return return_struct;
+            }
+        }
+
+        return_struct->status = STAUS_NORMAL;
         return return_struct;
     }
 
@@ -576,6 +660,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
         if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_ANGLE_BRACKET_LEFT) {
+
             if (lhs->variable_type == VARIABLE_STRING
                 && rhs->variable_type == VARIABLE_STRING) {
                 gchar* lhs_str = variable_to_string(lhs);
