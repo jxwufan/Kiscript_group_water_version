@@ -362,8 +362,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         }
         g_assert(caller_variable->variable_type == VARIABLE_OBJECT);
 
-        AR_Parent = callee_variable->AR;
-        activation_record_t *AR = activation_record_new(AR_Parent, AR_Parent->static_link);
+        activation_record_t *AR = activation_record_new(callee_variable->AR, callee_variable->AR->static_link);
 
         activation_record_insert(AR, "this", caller_variable);
         g_hash_table_ref(caller_variable->variable_data);

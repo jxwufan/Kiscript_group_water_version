@@ -1,5 +1,4 @@
 function a(n) {
-    n + 0;
     if (n == 0) {
         return 1;
     } else {
@@ -7,4 +6,4 @@ function a(n) {
     }
 }
 
-a(3);
+a(10);
