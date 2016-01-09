@@ -44,10 +44,10 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
         return_struct_t *return_struct;
         return_struct = evaluate_token(token_get_child(program_token, i), AR);
         if (return_struct->mid_variable != NULL) {
-            printf("%s ", variable_to_string(return_struct->mid_variable));
+            printf("mid: %s ", variable_to_string(return_struct->mid_variable));
         }
         if (return_struct->end_variable != NULL) {
-            printf("%s\n", variable_to_string(return_struct->end_variable));
+            printf("end: %s\n", variable_to_string(return_struct->end_variable));
         } else {
             printf("\n");
         }
@@ -334,6 +334,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
         // TODO: check return status
+        printf("assignment rhs: %s\n", variable_to_string(return_struct_rhs->mid_variable));
         if (storage_hash_table != NULL) {
             g_hash_table_insert(storage_hash_table, identifier, return_struct_rhs->mid_variable);
         } else {
@@ -376,6 +377,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 //TODO: exception
                 exit(-1);
             }
+            activation_record_declare(AR, identifier_get_value(token_get_child(call_argument_identifiler_list, i))->str);
             activation_record_insert(AR, identifier_get_value(token_get_child(call_argument_identifiler_list, i))->str, return_struct->mid_variable);
         }
 
@@ -1063,12 +1065,11 @@ return_struct_t *evaluate_function(token_t *function_token, activation_record_t 
 }
 
 return_struct_t *evaluate_call_function(token_t *function_body_token, activation_record_t *AR_parent) {
-    return_struct_t *return_struct = return_struct_new();
+    return_struct_t *return_struct;
     for (guint i  = 0; i < function_body_token->children->len; ++i) {
-        return_struct_t *return_struct;
         return_struct = evaluate_token(token_get_child(function_body_token, i), AR_parent);
         if (return_struct->mid_variable != NULL) {
-            printf("%s\n", variable_to_string(return_struct->mid_variable));
+//            printf("%s\n", variable_to_string(return_struct->mid_variable));
         }
 
         if (return_struct->status == STAUS_RETURN)

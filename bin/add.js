@@ -1,12 +1,10 @@
-var b = {};
-var a = 0;
-b.a = function(a, b, c) {
-    var a = 5;
+function a(n) {
+    n + 0;
+    if (n == 0) {
+        return 1;
+    } else {
+        return a(n - 1) * n;
+    }
+}
 
-    return function() {return a;};
-};
-
-var d;
-d = b.a(1,2,3);
-//d();
-d = 123;
+a(3);
