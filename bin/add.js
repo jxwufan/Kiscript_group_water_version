@@ -1,9 +1,7 @@
-function a(n) {
-    if (n == 0) {
-        return 1;
-    } else {
-        return a(n - 1) * n;
-    }
+function a(b) {
+    this.c = b;
 }
 
-a(10);
+a.prototype = {e:123};
+d = new a(10);
+d.e + 0;

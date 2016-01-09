@@ -103,6 +103,7 @@ gboolean is_expression(token_t *token) {
            token->id == TOKEN_EXPRESSION_MULTIPLICATIVE_EXPRESSION       ||
            token->id == TOKEN_EXPRESSION_EQUALITY_EXPRESSION             ||
            token->id == TOKEN_EXPRESSION_CALL_EXPRESSION                 ||
+           token->id == TOKEN_EXPRESSION_NEW_EXPRESSION                  ||
            token->id == TOKEN_EXPRESSION_SHIFT_EXPRESSION                ||
            token->id == TOKEN_EXPRESSION_EQUALITY_EXPRESSION             ||
            token->id == TOKEN_EXPRESSION_UNARY_EXPRESSION                ||
@@ -344,6 +345,47 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct->status = STAUS_NORMAL;
         return_struct->mid_variable = return_struct_rhs->mid_variable;
         return return_struct;
+    } else if (expression_token->id == TOKEN_EXPRESSION_NEW_EXPRESSION) {
+        variable_t *constructor;
+        variable_t *new_object_variable = variable_object_new();
+        return_struct = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
+        if (return_struct->status != STAUS_NORMAL) {
+            return return_struct;
+        }
+
+        g_assert(return_struct->mid_variable->variable_type == VARIABLE_FUNC);
+        constructor = return_struct->mid_variable;
+
+        activation_record_t *AR = activation_record_new(constructor->AR, constructor->AR->static_link);
+        activation_record_insert(AR, "this", new_object_variable);
+        g_hash_table_ref(new_object_variable->variable_data);
+
+        token_t *call_argument_value_list       = token_get_child(expression_token, 1);
+        token_t *call_argument_identifier_list = token_get_child((token_t *)g_hash_table_lookup((GHashTable *)constructor->variable_data, ""), 1);
+
+        for (guint i = 0; i < MIN(call_argument_value_list->children->len, call_argument_identifier_list->children->len); ++i) {
+            return_struct = evaluate_token(token_get_child(call_argument_value_list, i), AR_Parent);
+            if (return_struct->status != STAUS_NORMAL) {
+                //TODO: exception
+                exit(-1);
+            }
+            activation_record_declare(AR, identifier_get_value(token_get_child(call_argument_identifier_list, i))->str);
+            activation_record_insert(AR, identifier_get_value(token_get_child(call_argument_identifier_list, i))->str, return_struct->mid_variable);
+        }
+
+        return_struct = evaluate_call_function(token_get_child((token_t *)g_hash_table_lookup((GHashTable *)constructor->variable_data, ""), 2), AR);
+        if (return_struct->status != STAUS_NORMAL) {
+            //TODO: exception
+            exit(-1);
+        }
+
+        activation_record_reach_end_of_scope(AR);
+
+        g_hash_table_insert(new_object_variable->variable_data, "__proto__", g_hash_table_lookup(constructor->variable_data, "prototype"));
+        return_struct->status = STAUS_NORMAL;
+        return_struct->mid_variable = new_object_variable;
+
+        return return_struct;
     } else if (expression_token->id == TOKEN_EXPRESSION_CALL_EXPRESSION) {
         variable_t *callee_variable;
         variable_t *caller_variable;
@@ -368,16 +410,16 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         g_hash_table_ref(caller_variable->variable_data);
 
         token_t *call_argument_value_list       = token_get_child(expression_token, 1);
-        token_t *call_argument_identifiler_list = token_get_child((token_t *)g_hash_table_lookup((GHashTable *)callee_variable->variable_data, ""), 1);
+        token_t *call_argument_identifier_list = token_get_child((token_t *)g_hash_table_lookup((GHashTable *)callee_variable->variable_data, ""), 1);
 
-        for (guint i = 0; i < MIN(call_argument_value_list->children->len, call_argument_identifiler_list->children->len); ++i) {
+        for (guint i = 0; i < MIN(call_argument_value_list->children->len, call_argument_identifier_list->children->len); ++i) {
             return_struct = evaluate_token(token_get_child(call_argument_value_list, i), AR_Parent);
             if (return_struct->status != STAUS_NORMAL) {
                 //TODO: exception
                 exit(-1);
             }
-            activation_record_declare(AR, identifier_get_value(token_get_child(call_argument_identifiler_list, i))->str);
-            activation_record_insert(AR, identifier_get_value(token_get_child(call_argument_identifiler_list, i))->str, return_struct->mid_variable);
+            activation_record_declare(AR, identifier_get_value(token_get_child(call_argument_identifier_list, i))->str);
+            activation_record_insert(AR, identifier_get_value(token_get_child(call_argument_identifier_list, i))->str, return_struct->mid_variable);
         }
 
         return_struct = evaluate_call_function(token_get_child((token_t *)g_hash_table_lookup((GHashTable *)callee_variable->variable_data, ""), 2), AR);
