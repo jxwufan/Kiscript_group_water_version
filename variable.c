@@ -196,16 +196,26 @@ variable_t *variable_object_lookup(variable_t *object_variable, token_t *key) {
         return_struct_t *return_struct_variable_key = evaluate_token(key, NULL);
 
         if (return_struct_variable_key->status == STAUS_NORMAL) {
-            //TODO: use prototype here
-//            return g_hash_table_lookup((GHashTable *) object_variable->variable_data,
-//                                       variable_to_string(return_struct_variable_key->mid_variable));
+            // TODO: to string may cause  exception
+            return prototype_chain_lookup(object_variable, variable_to_string(return_struct_variable_key->mid_variable));
         } else {
             return NULL;
         }
     } else {
-        // TODO: use prototype here
-//        return g_hash_table_lookup((GHashTable *) object_variable->variable_data, identifier_get_value(key)->str);
+        return prototype_chain_lookup(object_variable, identifier_get_value(key)->str);
     }
 
+    return NULL;
+}
+
+variable_t *prototype_chain_lookup(variable_t *object_variable, gchar *attribute_identifier) {
+    variable_t *return_variable;
+
+    while (object_variable != NULL) {
+        return_variable = g_hash_table_lookup((GHashTable*) object_variable->variable_data, attribute_identifier);
+        if (return_variable != NULL)
+            return return_variable;
+        object_variable = g_hash_table_lookup((GHashTable*) object_variable->variable_data, "prototype");
+    }
     return NULL;
 }
