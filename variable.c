@@ -50,7 +50,7 @@ void variable_on_destory(variable_t *variable) {
     if (variable->variable_type == VARIABLE_FUNC) {
         g_hash_table_unref(variable->AR->AR_hash_table);
         g_hash_table_unref((GHashTable*) variable->variable_data);
-    } else if (variable->variable_type == VARIABLE_OBJECT || variable->variable_type == VARIABLE_FUNC){
+    } else if (variable->variable_type == VARIABLE_OBJECT){
         // TODO: collect attribute table memory
         g_hash_table_unref((GHashTable*) variable->variable_data);
     }
@@ -185,6 +185,9 @@ variable_t *variable_function_new(gpointer function_data, activation_record_t *A
 
     g_hash_table_insert((GHashTable*) prototype_variable->variable_data, "constructor", function_variable);
     g_hash_table_insert((GHashTable*) prototype_variable->variable_data, "__proto__", NULL);
+
+    g_hash_table_ref(prototype_variable->variable_data);
+    g_hash_table_ref(function_table);
 
     return function_variable;
 }
