@@ -49,6 +49,7 @@ void variable_on_destory(variable_t *variable) {
         return;
     if (variable->variable_type == VARIABLE_FUNC) {
         g_hash_table_unref(variable->AR->AR_hash_table);
+        g_hash_table_unref((GHashTable*) variable->variable_data);
     } else if (variable->variable_type == VARIABLE_OBJECT){
         // TODO: collect attribute table memory
         g_hash_table_unref((GHashTable*) variable->variable_data);
@@ -82,10 +83,34 @@ gchar* variable_to_string(variable_t *variable) {
 }
 
 gdouble variable_to_numerical(variable_t *variable) {
-    gdouble return_value;
+    gdouble return_value = NAN;
     if (variable->variable_type == VARIABLE_STRING) {
         gchar* str = (gchar*) variable->variable_data;
         sscanf(str, "%lf", &return_value);
+
+        gboolean is_legal_num = TRUE;
+        gint cnt_dot = 0;
+
+        for (gint i=0; i<strlen(str); i++) {
+            if (str[i]>='0' && str[i]<='9') {
+                continue;
+            } else if (str[i]=='.') {
+                cnt_dot++;
+                if (cnt_dot>1) {
+                    is_legal_num = FALSE;
+                }
+            } else if (str[i]=='-') {
+                if (i>0) {
+                    is_legal_num = FALSE;
+                }
+            } else {
+                is_legal_num = FALSE;
+            }
+        }
+
+        if (!is_legal_num) {
+            return_value = NAN;
+        }
     } else if (variable->variable_type == VARIABLE_NUMERICAL) {
         return_value = *((gdouble*)variable->variable_data);
     } else if (variable->variable_type == VARIABLE_BOOL) {
@@ -143,7 +168,10 @@ variable_t *variable_object_new() {
 }
 
 variable_t *variable_function_new(gpointer function_data, activation_record_t *AR) {
-    return variable_new(VARIABLE_FUNC, function_data, AR);
+    GHashTable *function_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) variable_on_destory);
+
+    g_hash_table_insert(function_table, "", function_data);
+    return variable_new(VARIABLE_FUNC, function_table, AR);
 }
 
 gboolean variable_object_insert(variable_t *object_variable, token_t *key, variable_t *value) {
@@ -172,14 +200,26 @@ variable_t *variable_object_lookup(variable_t *object_variable, token_t *key) {
         return_struct_t *return_struct_variable_key = evaluate_token(key, NULL);
 
         if (return_struct_variable_key->status == STAUS_NORMAL) {
-            return g_hash_table_lookup((GHashTable *) object_variable->variable_data,
-                                       variable_to_string(return_struct_variable_key->mid_variable));
+            // TODO: to string may cause  exception
+            return prototype_chain_lookup(object_variable, variable_to_string(return_struct_variable_key->mid_variable));
         } else {
             return NULL;
         }
     } else {
-        return g_hash_table_lookup((GHashTable *) object_variable->variable_data, identifier_get_value(key)->str);
+        return prototype_chain_lookup(object_variable, identifier_get_value(key)->str);
     }
 
+    return NULL;
+}
+
+variable_t *prototype_chain_lookup(variable_t *object_variable, gchar *attribute_identifier) {
+    variable_t *return_variable;
+
+    while (object_variable != NULL) {
+        return_variable = g_hash_table_lookup((GHashTable*) object_variable->variable_data, attribute_identifier);
+        if (return_variable != NULL)
+            return return_variable;
+        object_variable = g_hash_table_lookup((GHashTable*) object_variable->variable_data, "prototype");
+    }
     return NULL;
 }

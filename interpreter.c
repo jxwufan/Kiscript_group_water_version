@@ -556,12 +556,8 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
         if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_ANGLE_BRACKET_LEFT) {
-            if ((lhs->variable_type == VARIABLE_NUMERICAL
-                 || lhs->variable_type == VARIABLE_STRING
-                 || lhs->variable_type == VARIABLE_BOOL)
-                && (rhs->variable_type == VARIABLE_NUMERICAL
-                    || rhs->variable_type == VARIABLE_STRING
-                    || rhs->variable_type == VARIABLE_BOOL)) {
+            if (lhs->variable_type == VARIABLE_STRING
+                && rhs->variable_type == VARIABLE_STRING) {
                 gchar* lhs_str = variable_to_string(lhs);
                 gchar* rhs_str = variable_to_string(rhs);
                 gboolean result;
@@ -575,14 +571,29 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_bool_new(&result);
                 return return_struct;
+            } else if ((lhs->variable_type == VARIABLE_NUMERICAL
+                        || lhs->variable_type == VARIABLE_STRING
+                        || lhs->variable_type == VARIABLE_BOOL)
+                       && (rhs->variable_type == VARIABLE_NUMERICAL
+                           || rhs->variable_type == VARIABLE_STRING
+                           || rhs->variable_type == VARIABLE_BOOL)) {
+                gdouble lhs_double = variable_to_numerical(lhs);
+                gdouble rhs_double = variable_to_numerical(rhs);
+                gboolean result;
+
+                if (lhs_double < rhs_double) {
+                    result = TRUE;
+                } else {
+                    result = FALSE;
+                }
+
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
             }
         } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_ANGLE_BRACKET_RIGHT) {
-            if ((lhs->variable_type == VARIABLE_NUMERICAL
-                 || lhs->variable_type == VARIABLE_STRING
-                 || lhs->variable_type == VARIABLE_BOOL)
-                && (rhs->variable_type == VARIABLE_NUMERICAL
-                    || rhs->variable_type == VARIABLE_STRING
-                    || rhs->variable_type == VARIABLE_BOOL)) {
+            if (lhs->variable_type == VARIABLE_STRING
+                && rhs->variable_type == VARIABLE_STRING) {
                 gchar* lhs_str = variable_to_string(lhs);
                 gchar* rhs_str = variable_to_string(rhs);
                 gboolean result;
@@ -596,15 +607,29 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_bool_new(&result);
                 return return_struct;
+            } else if ((lhs->variable_type == VARIABLE_NUMERICAL
+                        || lhs->variable_type == VARIABLE_STRING
+                        || lhs->variable_type == VARIABLE_BOOL)
+                       && (rhs->variable_type == VARIABLE_NUMERICAL
+                           || rhs->variable_type == VARIABLE_STRING
+                           || rhs->variable_type == VARIABLE_BOOL)) {
+                gdouble lhs_double = variable_to_numerical(lhs);
+                gdouble rhs_double = variable_to_numerical(rhs);
+                gboolean result;
+
+                if (lhs_double > rhs_double) {
+                    result = TRUE;
+                } else {
+                    result = FALSE;
+                }
+
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
             }
         } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_LESS_THAN_OR_EQUAL) {
-            if ((lhs->variable_type == VARIABLE_NUMERICAL
-                 || lhs->variable_type == VARIABLE_STRING
-                 || lhs->variable_type == VARIABLE_BOOL)
-                && (rhs->variable_type == VARIABLE_NUMERICAL
-                    || rhs->variable_type == VARIABLE_STRING
-                    || rhs->variable_type == VARIABLE_BOOL)
-                && lhs->variable_type == rhs->variable_type) {
+            if (lhs->variable_type == VARIABLE_STRING
+                && rhs->variable_type == VARIABLE_STRING) {
                 gchar* lhs_str = variable_to_string(lhs);
                 gchar* rhs_str = variable_to_string(rhs);
                 gboolean result;
@@ -618,19 +643,53 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_bool_new(&result);
                 return return_struct;
+            } else if ((lhs->variable_type == VARIABLE_NUMERICAL
+                        || lhs->variable_type == VARIABLE_STRING
+                        || lhs->variable_type == VARIABLE_BOOL)
+                       && (rhs->variable_type == VARIABLE_NUMERICAL
+                           || rhs->variable_type == VARIABLE_STRING
+                           || rhs->variable_type == VARIABLE_BOOL)) {
+                gdouble lhs_double = variable_to_numerical(lhs);
+                gdouble rhs_double = variable_to_numerical(rhs);
+                gboolean result;
+
+                if (lhs_double <= rhs_double) {
+                    result = TRUE;
+                } else {
+                    result = FALSE;
+                }
+
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
             }
         } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_GREATER_THAN_OR_EQUAL) {
-            if ((lhs->variable_type == VARIABLE_NUMERICAL
-                 || lhs->variable_type == VARIABLE_STRING
-                 || lhs->variable_type == VARIABLE_BOOL)
-                && (rhs->variable_type == VARIABLE_NUMERICAL
-                    || rhs->variable_type == VARIABLE_STRING
-                    || rhs->variable_type == VARIABLE_BOOL)) {
+            if (lhs->variable_type == VARIABLE_STRING
+                && rhs->variable_type == VARIABLE_STRING) {
                 gchar* lhs_str = variable_to_string(lhs);
                 gchar* rhs_str = variable_to_string(rhs);
                 gboolean result;
 
                 if (g_strcmp0(lhs_str, rhs_str)>=0) {
+                    result = TRUE;
+                } else {
+                    result = FALSE;
+                }
+
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
+            } else if ((lhs->variable_type == VARIABLE_NUMERICAL
+                        || lhs->variable_type == VARIABLE_STRING
+                        || lhs->variable_type == VARIABLE_BOOL)
+                       && (rhs->variable_type == VARIABLE_NUMERICAL
+                           || rhs->variable_type == VARIABLE_STRING
+                           || rhs->variable_type == VARIABLE_BOOL)) {
+                gdouble lhs_double = variable_to_numerical(lhs);
+                gdouble rhs_double = variable_to_numerical(rhs);
+                gboolean result;
+
+                if (lhs_double >= rhs_double) {
                     result = TRUE;
                 } else {
                     result = FALSE;

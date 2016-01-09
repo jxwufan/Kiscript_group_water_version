@@ -74,5 +74,8 @@ int main() {
     printf("\n");
     printf("Hello, KiScript!\n");
 
+//    variable_t *variable_test = variable_new(VARIABLE_STRING, "12", NULL);
+//    printf("%lf\n",variable_to_numerical(variable_test));
+
     return EXIT_SUCCESS;
 }

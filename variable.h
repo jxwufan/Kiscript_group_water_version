@@ -48,6 +48,7 @@ gdouble     variable_to_numerical   (variable_t *variable);
 gboolean    variable_object_insert  (variable_t *object_variable, token_t *key, variable_t *value);
 variable_t  *variable_object_lookup (variable_t *object_variable, token_t *key);
 
+variable_t  *prototype_chain_lookup (variable_t *object_variable, gchar *attribute_identifier);
 
 
 void variable_out_of_scope(variable_t *variable);
