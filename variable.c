@@ -24,6 +24,7 @@ variable_t *variable_new(variable_type_t variable_type, gpointer variable_data,
     variable->variable_type = variable_type;
     variable->variable_data = variable_data;
     variable->AR = AR;
+    variable->new_flag = TRUE;
     return variable;
 }
 
@@ -194,6 +195,13 @@ variable_t *variable_function_new(gpointer function_data, activation_record_t *A
 
 gboolean variable_object_insert(variable_t *object_variable, token_t *key, variable_t *value) {
     g_assert(object_variable->variable_type == VARIABLE_OBJECT || object_variable->variable_type == VARIABLE_FUNC);
+    if (value->variable_type == VARIABLE_OBJECT || value->variable_type == VARIABLE_FUNC) {
+        if (value->new_flag) {
+            value->new_flag = FALSE;
+        } else {
+            g_hash_table_ref(value->variable_data);
+        }
+    }
 
     if ( key->id != TOKEN_LEXICAL_IDENTIFIER) {
         return_struct_t *return_struct_variable_key = evaluate_token(key, NULL);

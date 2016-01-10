@@ -382,6 +382,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         activation_record_reach_end_of_scope(AR);
 
         g_hash_table_insert(new_object_variable->variable_data, "__proto__", g_hash_table_lookup(constructor->variable_data, "prototype"));
+        g_hash_table_ref(((variable_t *) g_hash_table_lookup(constructor->variable_data, "prototype"))->variable_data);
         return_struct->status = STAUS_NORMAL;
         return_struct->mid_variable = new_object_variable;
 

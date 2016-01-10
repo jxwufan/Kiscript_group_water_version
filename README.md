@@ -1,6 +1,6 @@
 # KiScript
 
-ECMAScript, kept simple.
+ECMAScript interpreter, written purely in C, kept simple.
 
 ## Specification
 

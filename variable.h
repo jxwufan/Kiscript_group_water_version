@@ -24,9 +24,10 @@ typedef enum {
 } variable_type_t;
 
 typedef struct {
-    variable_type_t variable_type;
-    gpointer        variable_data;
-    activation_record_t *AR;
+    variable_type_t         variable_type;
+    gpointer                variable_data;
+    activation_record_t     *AR;
+    gboolean                new_flag;
 } variable_t;
 
 variable_t  *variable_new           (variable_type_t variable_type, gpointer variable_data, activation_record_t *AR);

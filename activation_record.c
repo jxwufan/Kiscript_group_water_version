@@ -35,6 +35,13 @@ void activation_record_reach_end_of_scope(activation_record_t *AR) {
 
 gboolean activation_record_insert(activation_record_t *AR, gchar *key, gpointer value) {
     activation_record_t *current_AR = AR;
+    if (((variable_t *)value)->variable_type == VARIABLE_FUNC || ((variable_t *)value)->variable_type == VARIABLE_OBJECT) {
+        if (((variable_t *)value)->new_flag) {
+            ((variable_t *)value)->new_flag = FALSE;
+        } else {
+            g_hash_table_ref(((variable_t *) value)->variable_data);
+        }
+    }
 
     while (current_AR != NULL) {
         if (g_hash_table_contains(current_AR->AR_hash_table, key)) {

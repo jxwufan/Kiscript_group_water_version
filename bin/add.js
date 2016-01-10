@@ -1,7 +1,5 @@
-function a(b) {
-    this.c = b;
-}
-
-a.prototype = {e:123};
-d = new a(10);
-d.e + 0;
+a = {};
+a.b = {a:123};
+c = a.b;
+c = 0;
+a.b.a + 0;
