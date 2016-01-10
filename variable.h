@@ -26,6 +26,7 @@ typedef enum {
 typedef struct {
     variable_type_t         variable_type;
     gpointer                variable_data;
+    token_t                 *function_token;
     activation_record_t     *AR;
     gboolean                new_flag;
 } variable_t;

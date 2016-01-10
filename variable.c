@@ -176,13 +176,14 @@ variable_t *variable_function_new(gpointer function_data, activation_record_t *A
 
     variable_t *prototype_variable = variable_object_new();
 
-    g_hash_table_insert(function_table, "", function_data);
     g_hash_table_insert(function_table, "prototype", prototype_variable);
     g_hash_table_insert(function_table, "__proto__", NULL);
 
     g_hash_table_ref(AR->AR_hash_table);
 
     variable_t *function_variable = variable_new(VARIABLE_FUNC, function_table, AR);
+
+    function_variable->function_token = function_data;
 
     g_hash_table_insert((GHashTable*) prototype_variable->variable_data, "constructor", function_variable);
     g_hash_table_insert((GHashTable*) prototype_variable->variable_data, "__proto__", NULL);
