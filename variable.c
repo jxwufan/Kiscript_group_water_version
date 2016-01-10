@@ -81,6 +81,8 @@ gchar* variable_to_string(variable_t *variable) {
     } else if (variable->variable_type == VARIABLE_FUNC) {
         // TODO: implement with full description of function
         sprintf(str, "Func");
+    } else if (variable->variable_type == VARIABLE_NULL) {
+        sprintf(str, "null");
     }
 
     return str;
@@ -124,6 +126,8 @@ gdouble variable_to_numerical(variable_t *variable) {
         } else {
             return_value = 0;
         }
+    } else if (variable->variable_type == VARIABLE_NULL) {
+        return_value = 0;
     }
 
     return return_value;
