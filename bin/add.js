@@ -25,3 +25,13 @@ function Array() {
 a = new Array();
 //a.b;
 a.length = 0;
+
+b={};
+b.c=2;
+b.c++;
+b.c;
+b.c--;
+b.c;
+--b.c;
+++b.c;
+//++a.b.c;
