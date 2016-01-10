@@ -1,1 +1,0 @@
-/home/fan/code/kiscript_water_version/CMakeFiles/kiscript.dir
