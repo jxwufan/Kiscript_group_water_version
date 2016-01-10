@@ -480,17 +480,39 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
-        if (lhs->variable_type == VARIABLE_NUMERICAL && rhs->variable_type == VARIABLE_NUMERICAL) {
-            gdouble *lhs_value = lhs->variable_data;
-            gdouble *rhs_value = rhs->variable_data;
+        if ((lhs->variable_type == VARIABLE_NUMERICAL
+             || lhs->variable_type == VARIABLE_NULL
+             || lhs->variable_type == VARIABLE_BOOL)
+            && (rhs->variable_type == VARIABLE_NUMERICAL
+             || rhs->variable_type == VARIABLE_NULL
+             || rhs->variable_type == VARIABLE_BOOL)) {
+            gdouble lhs_double = variable_to_numerical(lhs);
+            gdouble rhs_double = variable_to_numerical(rhs);
             gdouble result;
             if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_PLUS) {
-                result = *lhs_value + *rhs_value;
+                result = lhs_double + rhs_double;
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_MINUS) {
-                result = *lhs_value - *rhs_value;
+                result = lhs_double - rhs_double;
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_numerical_new(&result);
+                return return_struct;
+            }
+        } else if (lhs->variable_type == VARIABLE_STRING || rhs->variable_type == VARIABLE_STRING) {
+            if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_PLUS) {
+                gchar* lhs_str = variable_to_string(lhs);
+                gchar* rhs_str = variable_to_string(rhs);
+                strcat(lhs_str, rhs_str);
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_string_new(lhs_str);
+                return return_struct;
+            } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_MINUS) {
+                gdouble lhs_double = variable_to_numerical(lhs);
+                gdouble rhs_double = variable_to_numerical(rhs);
+                gdouble result;
+                result = lhs_double - rhs_double;
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
@@ -504,23 +526,30 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
-        if (lhs->variable_type == VARIABLE_NUMERICAL && rhs->variable_type == VARIABLE_NUMERICAL) {
-            gdouble *lhs_value = lhs->variable_data;
-            gdouble *rhs_value = rhs->variable_data;
+        if ((lhs->variable_type == VARIABLE_NUMERICAL
+             || lhs->variable_type == VARIABLE_NULL
+             || lhs->variable_type == VARIABLE_BOOL
+             || lhs->variable_type == VARIABLE_STRING)
+            && (rhs->variable_type == VARIABLE_NUMERICAL
+                || rhs->variable_type == VARIABLE_NULL
+                || rhs->variable_type == VARIABLE_BOOL
+                || rhs->variable_type == VARIABLE_STRING)) {
+            gdouble lhs_double = variable_to_numerical(lhs);
+            gdouble rhs_double = variable_to_numerical(rhs);
             gdouble result;
             if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_SLASH) {
-                result = *lhs_value / *rhs_value;
+                result = lhs_double / rhs_double;
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_ASTERISK) {
-                result = *lhs_value * *rhs_value;
+                result = lhs_double * rhs_double;
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_PERCENT) {
-                gint lhs_int = (int)(*lhs_value);
-                gint rhs_int = (int)(*rhs_value);
+                gint lhs_int = (int)(lhs_double);
+                gint rhs_int = (int)(rhs_double);
 
                 result = lhs_int % rhs_int;
                 return_struct->status = STAUS_NORMAL;
@@ -536,7 +565,14 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
-        if (lhs->variable_type == VARIABLE_NUMERICAL && rhs->variable_type == VARIABLE_NUMERICAL) {
+        if ((lhs->variable_type == VARIABLE_NUMERICAL
+             || lhs->variable_type == VARIABLE_NULL
+             || lhs->variable_type == VARIABLE_BOOL
+             || lhs->variable_type == VARIABLE_STRING)
+            && (rhs->variable_type == VARIABLE_NUMERICAL
+                || rhs->variable_type == VARIABLE_NULL
+                || rhs->variable_type == VARIABLE_BOOL
+                || rhs->variable_type == VARIABLE_STRING)) {
             gdouble *lhs_value = lhs->variable_data;
             gdouble *rhs_value = rhs->variable_data;
             gint lhs_value_int = (int)(*lhs_value);
@@ -658,17 +694,20 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         }
     } else if (expression_token->id == TOKEN_EXPRESSION_UNARY_EXPRESSION) {
         g_assert(expression_token->children->len == 2);
-        // TODO: Is the child 1 always a identifier?
-        g_assert(token_get_child(expression_token, 1)->id == TOKEN_LEXICAL_IDENTIFIER);
+//        // TODO: Is the child 1 always a identifier?   Nope. e.g. -true;  -zyy
+//        g_assert(token_get_child(expression_token, 1)->id == TOKEN_LEXICAL_IDENTIFIER);
 
         return_struct_t *return_struct_operand = evaluate_token(token_get_child(expression_token, 1), AR_Parent);
         variable_t *operand = return_struct_operand->mid_variable;
         // TODO: check return status
         if (*punctuator_get_id(token_get_child(expression_token, 0)) == PUNCTUATOR_INCREMENT) {
-            if (operand->variable_type == VARIABLE_NUMERICAL) {
-                gdouble *operand_value = operand->variable_data;
+            if (operand->variable_type == VARIABLE_NUMERICAL
+                || operand->variable_type == VARIABLE_NULL
+                || operand->variable_type == VARIABLE_BOOL
+                || operand->variable_type == VARIABLE_STRING) {
+                gdouble operand_double = variable_to_numerical(operand);
                 gdouble result;
-                result = (*operand_value) + 1;
+                result = (operand_double) + 1;
 
                 variable_t *result_variable = variable_numerical_new(&result);
 
@@ -679,10 +718,13 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return return_struct;
             }
         } else if (*punctuator_get_id(token_get_child(expression_token, 0)) == PUNCTUATOR_DECREMENT) {
-            if (operand->variable_type == VARIABLE_NUMERICAL) {
-                gdouble *lhs_value = operand->variable_data;
+            if (operand->variable_type == VARIABLE_NUMERICAL
+                || operand->variable_type == VARIABLE_NULL
+                || operand->variable_type == VARIABLE_BOOL
+                || operand->variable_type == VARIABLE_STRING) {
+                gdouble operand_double = variable_to_numerical(operand);
                 gdouble result;
-                result = (*lhs_value) - 1;
+                result = (operand_double) - 1;
 
                 variable_t *result_variable = variable_numerical_new(&result);
 
@@ -693,49 +735,60 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return return_struct;
             }
         } else if (*punctuator_get_id(token_get_child(expression_token, 0)) == PUNCTUATOR_PLUS) {
-            if (operand->variable_type == VARIABLE_NUMERICAL) {
-                gdouble *lhs_value = operand->variable_data;
+            if (operand->variable_type == VARIABLE_NUMERICAL
+                || operand->variable_type == VARIABLE_NULL
+                || operand->variable_type == VARIABLE_BOOL
+                || operand->variable_type == VARIABLE_STRING) {
+                gdouble operand_double = variable_to_numerical(operand);
                 gdouble result;
-                result = *lhs_value;
+                result = operand_double;
 
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             }
         } else if (*punctuator_get_id(token_get_child(expression_token, 0)) == PUNCTUATOR_MINUS) {
-            if (operand->variable_type == VARIABLE_NUMERICAL) {
-                gdouble *lhs_value = operand->variable_data;
+            if (operand->variable_type == VARIABLE_NUMERICAL
+                || operand->variable_type == VARIABLE_NULL
+                || operand->variable_type == VARIABLE_BOOL
+                || operand->variable_type == VARIABLE_STRING) {
+                gdouble operand_double = variable_to_numerical(operand);
                 gdouble result;
-                result = 0 - (*lhs_value);
+                result = -operand_double;
 
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             }
-        } else if (*punctuator_get_id(token_get_child(expression_token, 0)) == PUNCTUATOR_TILDE) {
-            if (operand->variable_type == VARIABLE_NUMERICAL) {
-                gdouble *lhs_value = operand->variable_data;
+        } else if (*punctuator_get_id(token_get_child(expression_token, 0)) == PUNCTUATOR_TILDE) { //TODO: from here
+            if (operand->variable_type == VARIABLE_NUMERICAL
+                || operand->variable_type == VARIABLE_NULL
+                || operand->variable_type == VARIABLE_BOOL
+                || operand->variable_type == VARIABLE_STRING) {
+                gdouble operand_double = variable_to_numerical(operand);
                 gdouble result;
-                gint lhs_value_int = (int)(*lhs_value);
-                result = ~lhs_value_int;
+                gint operand_int = (int)(operand_double);
+                result = ~operand_int;
 
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             }
         } else if (*punctuator_get_id(token_get_child(expression_token, 0)) == PUNCTUATOR_EXCLAMATION) {
-            if (operand->variable_type == VARIABLE_NUMERICAL) {
-                gdouble *lhs_value = operand->variable_data;
+            if (operand->variable_type == VARIABLE_NUMERICAL
+                || operand->variable_type == VARIABLE_STRING
+                || operand->variable_type == VARIABLE_NULL) {
+                gdouble operand_double = variable_to_numerical(operand);
                 gdouble result;
-                result = !(*lhs_value);
+                result = !(operand_double);
 
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             } else if (operand->variable_type == VARIABLE_BOOL) {
-                gboolean  *lhs_value = operand->variable_data;
+                gboolean  *operand_value = operand->variable_data;
                 gboolean result;
-                result = !(*lhs_value);
+                result = !(*operand_value);
 
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_bool_new(&result);
@@ -747,11 +800,14 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct_t *return_struct_operand = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
         variable_t *operand = return_struct_operand->mid_variable;
         // TODO: check return status
-        if (operand->variable_type == VARIABLE_NUMERICAL) {
-            gdouble *operand_value = operand->variable_data;
+        if (operand->variable_type == VARIABLE_NUMERICAL
+            || operand->variable_type == VARIABLE_NULL
+            || operand->variable_type == VARIABLE_BOOL
+            || operand->variable_type == VARIABLE_STRING) {
+            gdouble operand_value = variable_to_numerical(operand);
             gdouble result;
             if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_INCREMENT) {
-                result = *operand_value + 1;
+                result = operand_value + 1;
 
                 variable_t *result_variable = variable_numerical_new(&result);
 
@@ -762,7 +818,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return_struct->mid_variable = variable_numerical_new(&result);
                 return return_struct;
             } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_DECREMENT) {
-                result = *operand_value - 1;
+                result = operand_value - 1;
 
                 variable_t *result_variable = variable_numerical_new(&result);
 
@@ -939,13 +995,17 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
         if ((lhs->variable_type == VARIABLE_NUMERICAL
-             || lhs->variable_type == VARIABLE_BOOL)
+             || lhs->variable_type == VARIABLE_BOOL
+             || lhs->variable_type == VARIABLE_NULL
+             || lhs->variable_type == VARIABLE_STRING)
             && (rhs->variable_type == VARIABLE_NUMERICAL
-                || rhs->variable_type == VARIABLE_BOOL)) {
-            gdouble  *lhs_value = lhs->variable_data;
-            gdouble  *rhs_value = rhs->variable_data;
+                || rhs->variable_type == VARIABLE_BOOL
+                || rhs->variable_type == VARIABLE_NULL
+                || rhs->variable_type == VARIABLE_STRING)) {
+            gdouble  lhs_value = variable_to_numerical(lhs);
+            gdouble  rhs_value = variable_to_numerical(rhs);
             gboolean result;
-            result = (*lhs_value) && (*rhs_value);
+            result = (lhs_value) && (rhs_value);
 
             return_struct->status = STAUS_NORMAL;
             return_struct->mid_variable = variable_bool_new(&result);
@@ -960,13 +1020,17 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
         if ((lhs->variable_type == VARIABLE_NUMERICAL
-             || lhs->variable_type == VARIABLE_BOOL)
+             || lhs->variable_type == VARIABLE_BOOL
+             || lhs->variable_type == VARIABLE_NULL
+             || lhs->variable_type == VARIABLE_STRING)
             && (rhs->variable_type == VARIABLE_NUMERICAL
-                || rhs->variable_type == VARIABLE_BOOL)) {
-            gdouble  *lhs_value = lhs->variable_data;
-            gdouble  *rhs_value = rhs->variable_data;
+                || rhs->variable_type == VARIABLE_BOOL
+                || rhs->variable_type == VARIABLE_NULL
+                || rhs->variable_type == VARIABLE_STRING)) {
+            gdouble  lhs_value = variable_to_numerical(lhs);
+            gdouble  rhs_value = variable_to_numerical(rhs);
             gboolean result;
-            result = (*lhs_value) || (*rhs_value);
+            result = (lhs_value) || (rhs_value);
 
             return_struct->status = STAUS_NORMAL;
             return_struct->mid_variable = variable_bool_new(&result);
@@ -980,12 +1044,18 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 1), AR_Parent);
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
-        if ((lhs->variable_type == VARIABLE_NUMERICAL)
-            && (rhs->variable_type == VARIABLE_NUMERICAL)) {
-            gdouble *lhs_value = lhs->variable_data;
-            gdouble *rhs_value = rhs->variable_data;
-            gint lhs_int = (int)(*lhs_value);
-            gint rhs_int = (int)(*rhs_value);
+        if ((lhs->variable_type == VARIABLE_NUMERICAL
+             || lhs->variable_type == VARIABLE_BOOL
+             || lhs->variable_type == VARIABLE_NULL
+             || lhs->variable_type == VARIABLE_STRING)
+            && (rhs->variable_type == VARIABLE_NUMERICAL
+                || rhs->variable_type == VARIABLE_BOOL
+                || rhs->variable_type == VARIABLE_NULL
+                || rhs->variable_type == VARIABLE_STRING)) {
+            gdouble  lhs_value = variable_to_numerical(lhs);
+            gdouble  rhs_value = variable_to_numerical(rhs);
+            gint lhs_int = (int)(lhs_value);
+            gint rhs_int = (int)(rhs_value);
             gdouble result;
             result = lhs_int & rhs_int;
 
@@ -1001,12 +1071,18 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 1), AR_Parent);
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
-        if ((lhs->variable_type == VARIABLE_NUMERICAL)
-            && (rhs->variable_type == VARIABLE_NUMERICAL)) {
-            gdouble *lhs_value = lhs->variable_data;
-            gdouble *rhs_value = rhs->variable_data;
-            gint lhs_int = (int)(*lhs_value);
-            gint rhs_int = (int)(*rhs_value);
+        if ((lhs->variable_type == VARIABLE_NUMERICAL
+             || lhs->variable_type == VARIABLE_BOOL
+             || lhs->variable_type == VARIABLE_NULL
+             || lhs->variable_type == VARIABLE_STRING)
+            && (rhs->variable_type == VARIABLE_NUMERICAL
+                || rhs->variable_type == VARIABLE_BOOL
+                || rhs->variable_type == VARIABLE_NULL
+                || rhs->variable_type == VARIABLE_STRING)) {
+            gdouble  lhs_value = variable_to_numerical(lhs);
+            gdouble  rhs_value = variable_to_numerical(rhs);
+            gint lhs_int = (int)(lhs_value);
+            gint rhs_int = (int)(rhs_value);
             gdouble result;
             result = lhs_int | rhs_int;
 
@@ -1022,12 +1098,18 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 1), AR_Parent);
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
-        if ((lhs->variable_type == VARIABLE_NUMERICAL)
-            && (rhs->variable_type == VARIABLE_NUMERICAL)) {
-            gdouble *lhs_value = lhs->variable_data;
-            gdouble *rhs_value = rhs->variable_data;
-            gint lhs_int = (int)(*lhs_value);
-            gint rhs_int = (int)(*rhs_value);
+        if ((lhs->variable_type == VARIABLE_NUMERICAL
+             || lhs->variable_type == VARIABLE_BOOL
+             || lhs->variable_type == VARIABLE_NULL
+             || lhs->variable_type == VARIABLE_STRING)
+            && (rhs->variable_type == VARIABLE_NUMERICAL
+                || rhs->variable_type == VARIABLE_BOOL
+                || rhs->variable_type == VARIABLE_NULL
+                || rhs->variable_type == VARIABLE_STRING)) {
+            gdouble  lhs_value = variable_to_numerical(lhs);
+            gdouble  rhs_value = variable_to_numerical(rhs);
+            gint lhs_int = (int)(lhs_value);
+            gint rhs_int = (int)(rhs_value);
             gdouble result;
             result = lhs_int ^ rhs_int;
 

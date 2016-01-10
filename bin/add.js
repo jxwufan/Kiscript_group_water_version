@@ -1,7 +1,18 @@
-function a() {
-    this.a = 123;
-}
-
-b = new a();
-
-b.a + 0;
+a = {};
+a.b = {a:123};
+c = a.b;
+c = 0;
+a.b.a + 0;
+1 + true;
+true + false;
+1 + null;
+1 + "123";
+null + "123";
+12 < "2";
+12 < "23";
+"12" < "2";
+12 < "23#";
+a="35"; ++a;
+a=null; ++a;
+a=true; ++a;
+-true;
