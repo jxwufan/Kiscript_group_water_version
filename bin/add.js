@@ -1,18 +1,27 @@
-a = {};
-a.b = {a:123};
-c = a.b;
-c = 0;
-a.b.a + 0;
-1 + true;
-true + false;
-1 + null;
-1 + "123";
-null + "123";
-12 < "2";
-12 < "23";
-"12" < "2";
-12 < "23#";
-a="35"; ++a;
-a=null; ++a;
-a=true; ++a;
--true;
+//function c(a) {
+//    return 123;
+//}
+//
+//c.call = function() {return this;};
+//a = c.call();
+//a();
+//
+//
+//
+function Array() {
+}
+//
+//Array.prototype.append = function(item) {
+//    this[this.length + 1] = item;
+//    this.lenth = this.length + 1;
+//};
+////
+////a.length = 0;
+////var a = new Array();
+////a.append("123");
+////a.append("345");
+////a[1];
+//
+a = new Array();
+//a.b;
+a.length = 0;

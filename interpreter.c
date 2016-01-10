@@ -375,7 +375,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
             activation_record_insert(AR, identifier_get_value(token_get_child(call_argument_identifier_list, i))->str, return_struct->mid_variable);
         }
 
-        return_struct = evaluate_call_function(token_get_child((token_t *)constructor->function_token,2), AR);
+        return_struct = evaluate_call_function(token_get_child((token_t *)constructor->function_token, 2), AR);
         if (return_struct->status != STAUS_NORMAL) {
             //TODO: exception
             exit(-1);
@@ -405,7 +405,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         } else {
             caller_variable = variable_new(VARIABLE_OBJECT, AR_Parent->AR_hash_table, NULL);
         }
-        g_assert(caller_variable->variable_type == VARIABLE_OBJECT);
+        g_assert(caller_variable->variable_type == VARIABLE_OBJECT || caller_variable->variable_type == VARIABLE_FUNC);
 
         activation_record_t *AR = activation_record_new(callee_variable->AR, callee_variable->AR->static_link);
 
@@ -1191,7 +1191,7 @@ return_struct_t *evaluate_function(token_t *function_token, activation_record_t 
 }
 
 return_struct_t *evaluate_call_function(token_t *function_body_token, activation_record_t *AR_parent) {
-    return_struct_t *return_struct;
+    return_struct_t *return_struct = return_struct_new();
     for (guint i  = 0; i < function_body_token->children->len; ++i) {
         return_struct = evaluate_token(token_get_child(function_body_token, i), AR_parent);
         if (return_struct->mid_variable != NULL) {
