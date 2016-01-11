@@ -33,6 +33,7 @@ typedef struct {
 
 variable_t  *variable_new           (variable_type_t variable_type, gpointer variable_data, activation_record_t *AR);
 variable_t  *variable_null_new      ();
+variable_t  *variable_undefined_new ();
 variable_t  *variable_bool_new      (gpointer bool_data);
 variable_t  *variable_numerical_new (gpointer numerical_data);
 variable_t  *variable_string_new    (gpointer string_data);

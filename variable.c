@@ -81,6 +81,8 @@ gchar* variable_to_string(variable_t *variable) {
     } else if (variable->variable_type == VARIABLE_FUNC) {
         // TODO: implement with full description of function
         sprintf(str, "Func");
+    } else if (variable->variable_type == VARIABLE_UNDEFINED) {
+        sprintf(str, "undefined");
     } else if (variable->variable_type == VARIABLE_NULL) {
         sprintf(str, "null");
     }
@@ -253,4 +255,8 @@ variable_t *prototype_chain_lookup(variable_t *object_variable, gchar *attribute
         object_variable = g_hash_table_lookup((GHashTable*) object_variable->variable_data, "__proto__");
     }
     return NULL;
+}
+
+variable_t *variable_undefined_new() {
+    return variable_new(VARIABLE_UNDEFINED, NULL, NULL);
 }

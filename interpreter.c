@@ -445,8 +445,9 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return_struct->end_variable = return_struct_lhs->mid_variable;
                 return return_struct;
             } else {
-                // TODO: handel exception
-                return_struct->status = STAUS_THROW;
+                // TODO: Return undefined
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_undefined_new();
                 return return_struct;
             }
         } else if (return_struct_lhs->status == STAUS_THROW) {
@@ -1269,6 +1270,8 @@ return_struct_t *evaluate_call_function(token_t *function_body_token, activation
 
         if (return_struct->status == STAUS_RETURN)
             break;
+        if (return_struct->status != STAUS_NORMAL)
+            return return_struct;
     }
 
     return_struct->status = STAUS_NORMAL;
