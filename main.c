@@ -68,7 +68,7 @@ int main() {
     evaluate_program(program_or_error, NULL);
 
     GString *program_string = token_to_string(program_or_error);
-    printf("%s", program_string->str);
+//    printf("%s", program_string->str);
     g_string_free(program_string, TRUE);
     token_free(&program_or_error);
 

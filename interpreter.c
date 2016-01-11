@@ -49,12 +49,12 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
         return_struct_t *return_struct;
         return_struct = evaluate_token(token_get_child(program_token, i), AR);
         if (return_struct->mid_variable != NULL) {
-            printf("mid: %s ", variable_to_string(return_struct->mid_variable));
+//            printf("mid: %s ", variable_to_string(return_struct->mid_variable));
         }
         if (return_struct->end_variable != NULL) {
-            printf("end: %s\n", variable_to_string(return_struct->end_variable));
+//            printf("end: %s\n", variable_to_string(return_struct->end_variable));
         } else {
-            printf("\n");
+//            printf("\n");
         }
     }
 
@@ -471,7 +471,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
         // TODO: check return status
-        printf("assignment rhs: %s\n", variable_to_string(return_struct_rhs->mid_variable));
+//        printf("assignment rhs: %s\n", variable_to_string(return_struct_rhs->mid_variable));
         if (storage_hash_table != NULL) {
             g_hash_table_insert(storage_hash_table, identifier, return_struct_rhs->mid_variable);
         } else {
@@ -546,6 +546,16 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
         return return_struct;
     } else if (expression_token->id == TOKEN_EXPRESSION_CALL_EXPRESSION) {
+        token_t *func_token = token_get_child(expression_token, 0);
+        if (func_token->id == TOKEN_LEXICAL_IDENTIFIER && strcmp("Log", identifier_get_value(func_token)->str) == 0) {
+            return_struct = evaluate_token(token_get_child(token_get_child(expression_token, 1), 0), AR_Parent);
+            if (return_struct->status != STAUS_NORMAL) {
+                return return_struct;
+            }
+            printf("Log: %s\n", variable_to_string(return_struct->mid_variable));
+            return return_struct;
+        }
+
         variable_t *callee_variable;
         variable_t *caller_variable;
         return_struct = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
@@ -1539,9 +1549,9 @@ void init_builtin(activation_record_t *AR) {
     Function    = activation_record_lookup(AR, "Function");
     Array       = activation_record_lookup(AR, "Array");
 
-    printf("%p\n", Object);
-    printf("%p\n", Function);
-    printf("%p\n", Array);
+//    printf("%p\n", Object);
+//    printf("%p\n", Function);
+//    printf("%p\n", Array);
 
     Objcet_prototype     = g_hash_table_lookup(Object->variable_data,   "prototype");
     Function_prototype   = g_hash_table_lookup(Function->variable_data, "prototype");
@@ -1574,12 +1584,12 @@ return_struct_t *evaluate_init(token_t *program_token, activation_record_t *AR_p
         return_struct_t *return_struct;
         return_struct = evaluate_token(token_get_child(program_token, i), AR);
         if (return_struct->mid_variable != NULL) {
-            printf("mid: %s ", variable_to_string(return_struct->mid_variable));
+//            printf("mid: %s ", variable_to_string(return_struct->mid_variable));
         }
         if (return_struct->end_variable != NULL) {
-            printf("end: %s\n", variable_to_string(return_struct->end_variable));
+//            printf("end: %s\n", variable_to_string(return_struct->end_variable));
         } else {
-            printf("\n");
+//            printf("\n");
         }
     }
 
