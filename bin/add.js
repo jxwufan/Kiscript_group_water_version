@@ -14,10 +14,14 @@ fan.name;
 fan.age;
 fan.status;
 
-Log(fan.name);
+var a = [1,2,3];
+a.append(234);
+Log(a.length);
+Log(a[3]);
+var b = new Array();
+b.append(123);
+Log(b.length);
 
-var a = "";
-for (var i = 0; i < 10; i++) {
-    a = a + "*";
-    Log(a);
-}
+Log(fan.name);
+Log(fan.age);
+Log(fan.status);

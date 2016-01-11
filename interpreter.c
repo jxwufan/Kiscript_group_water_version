@@ -644,7 +644,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
         gdouble *array_length = GC_malloc(sizeof(gdouble));
         *array_length = expression_token->children->len;
-        g_hash_table_insert(array_varialbe->variable_data, "len", variable_numerical_new(array_length));
+        g_hash_table_insert(array_varialbe->variable_data, "length", variable_numerical_new(array_length));
         g_hash_table_insert(array_varialbe->variable_data, "__proto__", Array_prototype);
 
         for (guint i = 0; i < expression_token->children->len; ++i) {
