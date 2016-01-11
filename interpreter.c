@@ -4,10 +4,12 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/errno.h>
 #include "interpreter.h"
 #include "parser.h"
 #include "lexical_parser.h"
 #include "variable.h"
+#include "syntactic_parser.h"
 
 return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) {
     if (token->id == TOKEN_LEXICAL_KEYWORD && *((keyword_id_t *) token->data) == KEYWORD_THIS) {
@@ -41,7 +43,8 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
     activation_record_t *AR = activation_record_new(AR_parent, NULL);
     AR->static_link = AR;
 
-//    init_builtin(AR);
+    init_builtin(AR);
+
     for (guint i  = 0; i < program_token->children->len; ++i) {
         return_struct_t *return_struct;
         return_struct = evaluate_token(token_get_child(program_token, i), AR);
@@ -56,6 +59,8 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
     }
 
     activation_record_reach_end_of_scope(AR);
+
+    token_free(&builtin_token);
 
     return_struct->status = STAUS_NORMAL;
     return return_struct;
@@ -1272,6 +1277,114 @@ return_struct_t *evaluate_call_function(token_t *function_body_token, activation
             break;
         if (return_struct->status != STAUS_NORMAL)
             return return_struct;
+    }
+
+    return_struct->status = STAUS_NORMAL;
+    return return_struct;
+}
+
+void init_builtin(activation_record_t *AR) {
+    Object      = NULL;
+    Function    = NULL;
+    Array       = NULL;
+    Objcet_prototype    = NULL;
+    Function_prototype  = NULL;
+    Array_prototype     = NULL;
+
+    FILE *fi = fopen("./builtin.js", "r");
+
+    char *input = (char *) g_malloc(sizeof(char) * 5000);
+    size_t input_length = 0;
+    int data;
+    while((data = fgetc(fi)) != EOF) {
+        input[input_length++] = data;
+    }
+    input[input_length] = '\0';
+
+    if (errno) {
+        perror("getline");
+        g_free(input);
+    } else {
+        char *input_malloc = input;
+        input = g_strdup(input);
+        free(input_malloc);
+        input_malloc = NULL;
+    }
+
+    if (!lexical_parse_normalize_input(&input)) {
+        fprintf(stderr, "lexical_parse_normalize_input: error");
+        g_free(input);
+    }
+
+    token_t *lexical_error = NULL;
+    GPtrArray *token_list = lexical_parse(input, &lexical_error);
+    g_free(input);
+    if (lexical_error) {
+        GString *error_string = token_to_string(lexical_error);
+        fprintf(stderr, "lexical_parse: %s", error_string->str);
+        g_string_free(error_string, TRUE);
+        token_free(&lexical_error);
+    }
+
+    token_t *program_or_error = syntactic_parse(token_list);
+    token_list_free(&token_list);
+    if (error_is_error(program_or_error)) {
+        GString *error_string = token_to_string(program_or_error);
+        fprintf(stderr, "syntactic_parse: %s", error_string->str);
+        g_string_free(error_string, TRUE);
+        token_free(&program_or_error);
+    }
+
+    evaluate_init(program_or_error, AR);
+
+    builtin_token = program_or_error;
+
+    Object      = activation_record_lookup(AR, "Object");
+    Function    = activation_record_lookup(AR, "Function");
+    Array       = activation_record_lookup(AR, "Array");
+
+    printf("%p\n", Object);
+    printf("%p\n", Function);
+    printf("%p\n", Array);
+
+    Objcet_prototype     = g_hash_table_lookup(Object->variable_data,   "prototype");
+    Function_prototype   = g_hash_table_lookup(Function->variable_data, "prototype");
+    Array_prototype      = g_hash_table_lookup(Array->variable_data,    "prototype");
+
+    g_hash_table_insert(Object->variable_data, "__proto__", NULL);
+    g_hash_table_insert(Objcet_prototype->variable_data, "__proto__", NULL);
+
+    g_hash_table_insert(Function->variable_data, "__proto__", NULL);
+    g_hash_table_insert(Function_prototype->variable_data, "__proto__", Objcet_prototype);
+    g_hash_table_ref(Objcet_prototype->variable_data);
+
+    g_hash_table_insert(Array->variable_data, "__proto__", Function);
+    g_hash_table_insert(Array_prototype->variable_data, "__proto__", Objcet_prototype);
+    g_hash_table_ref(Function->variable_data);
+    g_hash_table_ref(Objcet_prototype->variable_data);
+
+//    printf("%s\n", variable_to_string(Object));
+//    printf("%s\n", variable_to_string(Function));
+//    printf("%s\n", variable_to_string(Array));
+//
+//    exit(-1);
+}
+
+return_struct_t *evaluate_init(token_t *program_token, activation_record_t *AR_parent) {
+    return_struct_t *return_struct = return_struct_new();
+    activation_record_t *AR = AR_parent;
+
+    for (guint i  = 0; i < program_token->children->len; ++i) {
+        return_struct_t *return_struct;
+        return_struct = evaluate_token(token_get_child(program_token, i), AR);
+        if (return_struct->mid_variable != NULL) {
+            printf("mid: %s ", variable_to_string(return_struct->mid_variable));
+        }
+        if (return_struct->end_variable != NULL) {
+            printf("end: %s\n", variable_to_string(return_struct->end_variable));
+        } else {
+            printf("\n");
+        }
     }
 
     return_struct->status = STAUS_NORMAL;

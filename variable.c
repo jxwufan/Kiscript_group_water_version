@@ -183,7 +183,11 @@ variable_t *variable_function_new(gpointer function_data, activation_record_t *A
     variable_t *prototype_variable = variable_object_new();
 
     g_hash_table_insert(function_table, "prototype", prototype_variable);
-    g_hash_table_insert(function_table, "__proto__", NULL);
+    g_hash_table_insert(function_table, "__proto__", Function_prototype);
+
+    if (Function_prototype != NULL) {
+        g_hash_table_ref(Function_prototype->variable_data);
+    }
 
     g_hash_table_ref(AR->AR_hash_table);
 
@@ -192,7 +196,11 @@ variable_t *variable_function_new(gpointer function_data, activation_record_t *A
     function_variable->function_token = function_data;
 
     g_hash_table_insert((GHashTable*) prototype_variable->variable_data, "constructor", function_variable);
-    g_hash_table_insert((GHashTable*) prototype_variable->variable_data, "__proto__", NULL);
+    g_hash_table_insert((GHashTable*) prototype_variable->variable_data, "__proto__", Objcet_prototype);
+
+    if (Objcet_prototype != NULL) {
+        g_hash_table_ref(Objcet_prototype->variable_data);
+    }
 
     g_hash_table_ref(prototype_variable->variable_data);
     g_hash_table_ref(function_table);

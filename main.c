@@ -16,6 +16,7 @@
 
 int main() {
     GC_INIT();
+
     FILE *fi = fopen("./add.js", "r");
 
     char *input = (char *) g_malloc(sizeof(char) * 5000);

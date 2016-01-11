@@ -1,2 +1,3 @@
 var a = {};
-"" + a.b;
+Array.call(a);
+a.length + 0;
