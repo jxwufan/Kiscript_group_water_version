@@ -73,7 +73,7 @@ return_struct_t *evaluate_block(token_t *block_token, activation_record_t *AR_pa
         return_struct_t *return_struct;
         return_struct = evaluate_token(token_get_child(block_token, i), AR);
         if (return_struct->mid_variable != NULL) {
-            printf("%s\n", variable_to_string(return_struct->mid_variable));
+//            printf("%s\n", variable_to_string(return_struct->mid_variable));
         }
 
         if (need_return_to_invoker(return_struct)) {

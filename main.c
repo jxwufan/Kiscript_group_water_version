@@ -72,8 +72,8 @@ int main() {
     g_string_free(program_string, TRUE);
     token_free(&program_or_error);
 
-    printf("\n");
-    printf("Hello, KiScript!\n");
+//    printf("\n");
+//    printf("Hello, KiScript!\n");
 
     return EXIT_SUCCESS;
 }
