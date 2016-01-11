@@ -2,8 +2,9 @@ function Object() {
 }
 
 Object.create = function(proto) {
-    var new_obj = new Object();
+    var new_obj = new this();
     new_obj.__proto__ = proto;
+    return new_obj;
 };
 
 function Function() {
