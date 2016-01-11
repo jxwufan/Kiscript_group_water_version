@@ -130,6 +130,8 @@ gboolean is_statement(token_t *token) {
     return  token->id == TOKEN_STATEMENT_EXPRESSION_STATEMENT       ||
             token->id == TOKEN_STATEMENT_VARIABLE_DECLARATION       ||
             token->id == TOKEN_STATEMENT_IF_STATEMENT               ||
+            token->id == TOKEN_STATEMENT_WHILE_STATEMENT            ||
+            token->id == TOKEN_STATEMENT_DO_WHILE_STATEMENT         ||
             token->id == TOKEN_STATEMENT_VARIABLE_DECLARATION_LIST  ||
             token->id == TOKEN_STATEMENT_FOR_STATEMENT              ||
             token->id == TOKEN_STATEMENT_RETURN_STATEMENT           ||
@@ -248,6 +250,132 @@ return_struct_t *evaluate_statement(token_t *statement_token, activation_record_
         return return_struct;
     } else if (statement_token->id == TOKEN_STATEMENT_BREAK_STATEMENT) {
         return_struct->status = STAUS_BREAK;
+        return return_struct;
+    } else if (statement_token->id == TOKEN_STATEMENT_WHILE_STATEMENT) {
+        activation_record_t *AR = activation_record_new(AR_Parent, AR_Parent->static_link);
+        token_t *for_init_token         = NULL;
+        token_t *for_condition_token    = token_get_child(statement_token, 0);
+        token_t *for_loop_end_token     = NULL;
+        token_t *for_block_token        = token_get_child(statement_token, 1);
+
+        return_struct_t *for_return_struct;
+        if (for_init_token != NULL) {
+            for_return_struct = evaluate_token(for_init_token, AR);
+            if (for_return_struct->status != STAUS_NORMAL) {
+                // TODO: handel abnormal status
+            }
+        }
+        while (TRUE) {
+            if (for_condition_token != NULL) {
+                for_return_struct = evaluate_token(for_condition_token, AR);
+                if (for_return_struct->status != STAUS_NORMAL) {
+                    // TODO: handel abnormal status
+                    printf("For condition abnormal");
+                    exit(-1);
+                }
+                if (for_return_struct->mid_variable->variable_type != VARIABLE_BOOL) {
+                    // TODO: handel abnormal status
+                    printf("For condition type abnormal");
+                    exit(-1);
+                }
+                gboolean *condition = (gboolean *) for_return_struct->mid_variable->variable_data;
+//                printf("%s\n", variable_to_string(for_return_struct->mid_variable));
+//                printf("%s\n", token_to_string(for_condition_token)->str);
+                if (!*condition)
+                    break;
+            }
+            for_return_struct = evaluate_block(for_block_token, AR);
+            if (need_return_to_invoker(for_return_struct)) {
+                if (for_return_struct->status == STAUS_RETURN) {
+                    activation_record_reach_end_of_scope(AR);
+                    return for_return_struct;
+                } else if (for_return_struct->status == STAUS_BREAK) {
+                    break;
+                } else if (for_return_struct->status == STAUS_CONTINUE) {
+                    if (for_loop_end_token != NULL) {
+                        for_return_struct = evaluate_token(for_loop_end_token, AR);
+                        if (for_return_struct->status != STAUS_NORMAL) {
+                            // TODO: handel abnormal status
+                        }
+                    }
+                    continue;
+                }
+            }
+
+            if (for_loop_end_token != NULL) {
+                for_return_struct = evaluate_token(for_loop_end_token, AR);
+                if (for_return_struct->status != STAUS_NORMAL) {
+                    // TODO: handel abnormal status
+                }
+            }
+        }
+
+        activation_record_reach_end_of_scope(AR);
+
+        return_struct->status = STAUS_NORMAL;
+        return return_struct;
+    } else if (statement_token->id == TOKEN_STATEMENT_DO_WHILE_STATEMENT) {
+        activation_record_t *AR = activation_record_new(AR_Parent, AR_Parent->static_link);
+        token_t *for_init_token         = NULL;
+        token_t *for_condition_token    = token_get_child(statement_token, 0);
+        token_t *for_loop_end_token     = NULL;
+        token_t *for_block_token        = token_get_child(statement_token, 1);
+
+        return_struct_t *for_return_struct;
+        if (for_init_token != NULL) {
+            for_return_struct = evaluate_token(for_init_token, AR);
+            if (for_return_struct->status != STAUS_NORMAL) {
+                // TODO: handel abnormal status
+            }
+        }
+        while (TRUE) {
+            for_return_struct = evaluate_block(for_block_token, AR);
+            if (need_return_to_invoker(for_return_struct)) {
+                if (for_return_struct->status == STAUS_RETURN) {
+                    activation_record_reach_end_of_scope(AR);
+                    return for_return_struct;
+                } else if (for_return_struct->status == STAUS_BREAK) {
+                    break;
+                } else if (for_return_struct->status == STAUS_CONTINUE) {
+                    if (for_loop_end_token != NULL) {
+                        for_return_struct = evaluate_token(for_loop_end_token, AR);
+                        if (for_return_struct->status != STAUS_NORMAL) {
+                            // TODO: handel abnormal status
+                        }
+                    }
+                    continue;
+                }
+            }
+
+            if (for_loop_end_token != NULL) {
+                for_return_struct = evaluate_token(for_loop_end_token, AR);
+                if (for_return_struct->status != STAUS_NORMAL) {
+                    // TODO: handel abnormal status
+                }
+            }
+            if (for_condition_token != NULL) {
+                for_return_struct = evaluate_token(for_condition_token, AR);
+                if (for_return_struct->status != STAUS_NORMAL) {
+                    // TODO: handel abnormal status
+                    printf("For condition abnormal");
+                    exit(-1);
+                }
+                if (for_return_struct->mid_variable->variable_type != VARIABLE_BOOL) {
+                    // TODO: handel abnormal status
+                    printf("For condition type abnormal");
+                    exit(-1);
+                }
+                gboolean *condition = (gboolean *) for_return_struct->mid_variable->variable_data;
+//                printf("%s\n", variable_to_string(for_return_struct->mid_variable));
+//                printf("%s\n", token_to_string(for_condition_token)->str);
+                if (!*condition)
+                    break;
+            }
+        }
+
+        activation_record_reach_end_of_scope(AR);
+
+        return_struct->status = STAUS_NORMAL;
         return return_struct;
     } else if (statement_token->id == TOKEN_STATEMENT_FOR_STATEMENT) {
         activation_record_t *AR = activation_record_new(AR_Parent, AR_Parent->static_link);

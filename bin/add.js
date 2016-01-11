@@ -1,4 +1,9 @@
-var b = {a:"123"};
+var i = 0;
+while (i < 10) {
+    i++;
+}
 
-a = Object.create(b);
-a.a;
+var i = 0;
+do {
+    i++;
+} while (i > 10)
