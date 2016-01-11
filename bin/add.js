@@ -1,5 +1,16 @@
-var a = [1,2,3];
+function People(name, age) {
+    this.name = name;
+    this.age = age;
+}
 
-a[2];
+function Student(name, age, status) {
+    var tmp = this;
+    People.call(this, name, age);
+    this.status = status;
+}
 
-throw abc;
+var fan = new Student("Fan Wu", 20, "Gua ke");
+
+fan.name;
+fan.age;
+fan.status;

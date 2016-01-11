@@ -183,7 +183,7 @@ variable_t *variable_function_new(gpointer function_data, activation_record_t *A
     variable_t *prototype_variable = variable_object_new();
 
     g_hash_table_insert(function_table, "prototype", prototype_variable);
-    g_hash_table_insert(function_table, "__proto__", Function_prototype);
+    g_hash_table_insert(function_table, "__proto__", Function);
 
     if (Function_prototype != NULL) {
         g_hash_table_ref(Function_prototype->variable_data);

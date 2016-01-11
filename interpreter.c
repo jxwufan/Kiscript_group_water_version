@@ -493,11 +493,31 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         constructor = return_struct->mid_variable;
 
         activation_record_t *AR = activation_record_new(constructor->AR, constructor->AR->static_link);
+        activation_record_declare(AR, "this");
         activation_record_insert(AR, "this", new_object_variable);
         g_hash_table_ref(new_object_variable->variable_data);
 
         token_t *call_argument_value_list       = token_get_child(expression_token, 1);
         token_t *call_argument_identifier_list = token_get_child((token_t *)constructor->function_token, 1);
+
+        variable_t *arguments = variable_object_new();
+        gdouble arguments_length = call_argument_value_list->children->len;
+
+        g_hash_table_insert(arguments->variable_data, "length", variable_numerical_new(&arguments_length));
+
+        for (guint i = 0; i < call_argument_value_list->children->len; ++i) {
+            gchar *index_str = GC_malloc(sizeof(gchar) * 10);
+            return_struct = evaluate_token(token_get_child(call_argument_value_list, i), AR_Parent);
+            if (return_struct->status != STAUS_NORMAL) {
+                //TODO: exception
+                exit(-1);
+            }
+
+            sprintf(index_str, "%d", i);
+            g_hash_table_insert(arguments->variable_data, index_str, return_struct->mid_variable);
+        }
+        activation_record_declare(AR, "arguments");
+        activation_record_insert(AR, "arguments", arguments);
 
         for (guint i = 0; i < MIN(call_argument_value_list->children->len, call_argument_identifier_list->children->len); ++i) {
             return_struct = evaluate_token(token_get_child(call_argument_value_list, i), AR_Parent);
@@ -519,6 +539,8 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
         g_hash_table_insert(new_object_variable->variable_data, "__proto__", g_hash_table_lookup(constructor->variable_data, "prototype"));
         g_hash_table_ref(((variable_t *) g_hash_table_lookup(constructor->variable_data, "prototype"))->variable_data);
+        g_hash_table_insert(new_object_variable->variable_data, "constructor", constructor);
+        g_hmac_ref(constructor->variable_data);
         return_struct->status = STAUS_NORMAL;
         return_struct->mid_variable = new_object_variable;
 
@@ -543,11 +565,31 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
         activation_record_t *AR = activation_record_new(callee_variable->AR, callee_variable->AR->static_link);
 
+        activation_record_declare(AR, "this");
         activation_record_insert(AR, "this", caller_variable);
         g_hash_table_ref(caller_variable->variable_data);
 
         token_t *call_argument_value_list       = token_get_child(expression_token, 1);
-        token_t *call_argument_identifier_list = token_get_child((token_t *)callee_variable->function_token, 1);
+        token_t *call_argument_identifier_list  = token_get_child((token_t *)callee_variable->function_token, 1);
+
+        variable_t *arguments = variable_object_new();
+        gdouble arguments_length = call_argument_value_list->children->len;
+
+        g_hash_table_insert(arguments->variable_data, "length", variable_numerical_new(&arguments_length));
+
+        for (guint i = 0; i < call_argument_value_list->children->len; ++i) {
+            gchar *index_str = GC_malloc(sizeof(gchar) * 10);
+            return_struct = evaluate_token(token_get_child(call_argument_value_list, i), AR_Parent);
+            if (return_struct->status != STAUS_NORMAL) {
+                //TODO: exception
+                exit(-1);
+            }
+
+            sprintf(index_str, "%d", i);
+            g_hash_table_insert(arguments->variable_data, index_str, return_struct->mid_variable);
+        }
+        activation_record_declare(AR, "arguments");
+        activation_record_insert(AR, "arguments", arguments);
 
         for (guint i = 0; i < MIN(call_argument_value_list->children->len, call_argument_identifier_list->children->len); ++i) {
             return_struct = evaluate_token(token_get_child(call_argument_value_list, i), AR_Parent);
@@ -593,9 +635,10 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         gdouble *array_length = GC_malloc(sizeof(gdouble));
         *array_length = expression_token->children->len;
         g_hash_table_insert(array_varialbe->variable_data, "len", variable_numerical_new(array_length));
-        gchar *index_str = GC_malloc(100);
+        g_hash_table_insert(array_varialbe->variable_data, "__proto__", Array_prototype);
 
         for (guint i = 0; i < expression_token->children->len; ++i) {
+            gchar *index_str = GC_malloc(sizeof(gchar) * 10);
             token_t *array_item_token = token_get_child(expression_token, i);
             sprintf(index_str, "%d", i);
 

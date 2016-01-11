@@ -13,7 +13,7 @@ function Function() {
 Function.call = function(init_this) {
     var tmp = init_this.constructor;
     init_this.constructor = this;
-    init_this.constructor();
+    init_this.constructor(arguments[1], arguments[2], arguments[3], arguments[4], arguments[5], arguments[6], arguments[7], arguments[8], arguments[9]);
     init_this.constructor = tmp;
 };
 
