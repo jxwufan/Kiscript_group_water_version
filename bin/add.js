@@ -1,9 +1,5 @@
-var i = 0;
-while (i < 10) {
-    i++;
-}
+var a = [1,2,3];
 
-var i = 0;
-do {
-    i++;
-} while (i > 10)
+a[2];
+
+throw abc;

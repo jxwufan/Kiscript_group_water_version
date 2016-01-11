@@ -122,6 +122,7 @@ gboolean is_expression(token_t *token) {
            token->id == TOKEN_EXPRESSION_BITWISE_OR_EXPRESSION           ||
            token->id == TOKEN_EXPRESSION_BITWISE_XOR_EXPRESSION          ||
            token->id == TOKEN_EXPRESSION_OBJECT_LITERAL                  ||
+           token->id == TOKEN_EXPRESSION_ARRAY_LITERAL                   ||
            token->id == TOKEN_EXPRESSION_PROPERTY_ACCESSOR               ||
            token->id == TOKEN_EXPRESSION_ASSIGNMENT_EXPRESSION;
 }
@@ -317,9 +318,9 @@ return_struct_t *evaluate_statement(token_t *statement_token, activation_record_
     } else if (statement_token->id == TOKEN_STATEMENT_DO_WHILE_STATEMENT) {
         activation_record_t *AR = activation_record_new(AR_Parent, AR_Parent->static_link);
         token_t *for_init_token         = NULL;
-        token_t *for_condition_token    = token_get_child(statement_token, 0);
+        token_t *for_condition_token    = token_get_child(statement_token, 1);
         token_t *for_loop_end_token     = NULL;
-        token_t *for_block_token        = token_get_child(statement_token, 1);
+        token_t *for_block_token        = token_get_child(statement_token, 0);
 
         return_struct_t *for_return_struct;
         if (for_init_token != NULL) {
@@ -586,6 +587,30 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         } else if (return_struct_lhs->status == STAUS_THROW) {
             // TODO: handel exception
         }
+    } else if (expression_token->id == TOKEN_EXPRESSION_ARRAY_LITERAL) {
+        variable_t *array_varialbe = variable_object_new();
+
+        gdouble *array_length = GC_malloc(sizeof(gdouble));
+        *array_length = expression_token->children->len;
+        g_hash_table_insert(array_varialbe->variable_data, "len", variable_numerical_new(array_length));
+        gchar *index_str = GC_malloc(100);
+
+        for (guint i = 0; i < expression_token->children->len; ++i) {
+            token_t *array_item_token = token_get_child(expression_token, i);
+            sprintf(index_str, "%d", i);
+
+            return_struct = evaluate_token(array_item_token, AR_Parent);
+            if (return_struct->status != STAUS_NORMAL) {
+                return return_struct;
+            }
+
+            g_hash_table_insert(array_varialbe->variable_data, index_str, return_struct->mid_variable);
+        }
+
+        return_struct->status = STAUS_NORMAL;
+        return_struct->mid_variable = array_varialbe;
+
+        return return_struct;
     } else if (expression_token->id == TOKEN_EXPRESSION_OBJECT_LITERAL) {
         variable_t *object_varialbe = variable_object_new();
 
