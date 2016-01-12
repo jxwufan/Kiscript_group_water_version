@@ -604,7 +604,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 gchar *line = g_malloc(sizeof(gchar) * 300);
                 printf(">>>");
                 fgets(line, 300, stdin);
-                if (strcmp(line, "exit();") == 0) {
+                if (strcmp(line, "exit();\n") == 0) {
                     break;
                 }
                 evaluate_eval(line, AR_Parent);
