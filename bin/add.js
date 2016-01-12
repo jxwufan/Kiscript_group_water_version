@@ -1,1 +1,1 @@
-Log(true ? 1 : 2);
+Log(eval("Log(1+1);"));

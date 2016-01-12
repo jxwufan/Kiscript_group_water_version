@@ -42,6 +42,7 @@ return_struct_t *evaluate_program       (token_t *program_token,        activati
 return_struct_t *evaluate_function      (token_t *function_token,       activation_record_t *AR_parent);
 return_struct_t *evaluate_block         (token_t *block_token,          activation_record_t *AR_parent);
 return_struct_t *evaluate_call_function (token_t *function_body_token,  activation_record_t *AR_parent);
+return_struct_t *evaluate_eval          (gchar* eval_code);
 
 void init_builtin(activation_record_t *AR);
 

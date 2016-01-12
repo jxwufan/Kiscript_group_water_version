@@ -46,7 +46,6 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
     init_builtin(AR);
 
     for (guint i  = 0; i < program_token->children->len; ++i) {
-        return_struct_t *return_struct;
         return_struct = evaluate_token(token_get_child(program_token, i), AR);
         if (return_struct->mid_variable != NULL) {
 //            printf("mid: %s ", variable_to_string(return_struct->mid_variable));
@@ -581,6 +580,9 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
             }
             printf("Log: %s\n", variable_to_string(return_struct->mid_variable));
             return return_struct;
+        }
+        if (func_token->id == TOKEN_LEXICAL_IDENTIFIER && strcmp("eval", identifier_get_value(func_token)->str) == 0) {
+            return evaluate_eval(string_literal_get_value(token_get_child(token_get_child(expression_token, 1), 0))->str);
         }
 
         variable_t *callee_variable;
@@ -1636,5 +1638,33 @@ return_struct_t *evaluate_init(token_t *program_token, activation_record_t *AR_p
     }
 
     return_struct->status = STAUS_NORMAL;
+    return return_struct;
+}
+
+return_struct_t *evaluate_eval(gchar *eval_code) {
+    if (!lexical_parse_normalize_input(&eval_code)) {
+        fprintf(stderr, "lexical_parse_normalize_input: error");
+    }
+
+    token_t *lexical_error = NULL;
+    GPtrArray *token_list = lexical_parse(eval_code, &lexical_error);
+    if (lexical_error) {
+        GString *error_string = token_to_string(lexical_error);
+        fprintf(stderr, "lexical_parse: %s", error_string->str);
+        g_string_free(error_string, TRUE);
+        token_free(&lexical_error);
+    }
+
+    token_t *program_or_error = syntactic_parse(token_list);
+    token_list_free(&token_list);
+    if (error_is_error(program_or_error)) {
+        GString *error_string = token_to_string(program_or_error);
+        fprintf(stderr, "syntactic_parse: %s", error_string->str);
+        g_string_free(error_string, TRUE);
+        token_free(&program_or_error);
+    }
+
+    return_struct_t *return_struct = evaluate_program(program_or_error, NULL);
+    token_free(&program_or_error);
     return return_struct;
 }
