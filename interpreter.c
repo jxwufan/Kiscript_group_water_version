@@ -486,19 +486,210 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
         return_struct_t *return_struct_rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent);
         // TODO: check return status
+        if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_EQUALS_SIGN) {
 //        printf("assignment rhs: %s\n", variable_to_string(return_struct_rhs->mid_variable));
-        if (storage_hash_table != NULL) {
-            g_hash_table_insert(storage_hash_table, identifier, return_struct_rhs->mid_variable);
-            if (return_struct_rhs->mid_variable->variable_type == VARIABLE_OBJECT || return_struct_rhs->mid_variable->variable_type == VARIABLE_FUNC) {
-                g_hash_table_ref(return_struct_rhs->mid_variable->variable_data);
+            if (storage_hash_table != NULL) {
+                g_hash_table_insert(storage_hash_table, identifier, return_struct_rhs->mid_variable);
+                if (return_struct_rhs->mid_variable->variable_type == VARIABLE_OBJECT || return_struct_rhs->mid_variable->variable_type == VARIABLE_FUNC) {
+                    g_hash_table_ref(return_struct_rhs->mid_variable->variable_data);
+                }
+            } else {
+                activation_record_insert(AR_Parent, identifier, return_struct_rhs->mid_variable);
             }
-        } else {
-            activation_record_insert(AR_Parent, identifier, return_struct_rhs->mid_variable);
-        }
 
-        return_struct->status = STAUS_NORMAL;
-        return_struct->mid_variable = return_struct_rhs->mid_variable;
-        return return_struct;
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = return_struct_rhs->mid_variable;
+            return return_struct;
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_MULTIPLY_ASSIGNMENT) {
+            // TODO: check existence
+            variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_variable;
+            variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_variable;
+            gdouble operand_value = variable_to_numerical(lhs) * variable_to_numerical(rhs);
+            variable_t *new_operand = variable_numerical_new(&operand_value);
+            if (storage_hash_table != NULL) {
+                g_hash_table_insert(storage_hash_table, identifier, new_operand);
+            } else {
+                activation_record_insert(AR_Parent, identifier, new_operand);
+            }
+
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = new_operand;
+            return return_struct;
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_DIVIDE_ASSIGNMENT) {
+            // TODO: check existence
+            variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_variable;
+            variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_variable;
+            gdouble operand_value = variable_to_numerical(lhs) / variable_to_numerical(rhs);
+            variable_t *new_operand = variable_numerical_new(&operand_value);
+            if (storage_hash_table != NULL) {
+                g_hash_table_insert(storage_hash_table, identifier, new_operand);
+            } else {
+                activation_record_insert(AR_Parent, identifier, new_operand);
+            }
+
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = new_operand;
+            return return_struct;
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_MODULO_ASSIGNMENT) {
+            // TODO: check existence
+            variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_variable;
+            variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_variable;
+            gdouble operand_value = ((int)variable_to_numerical(lhs)) % ((int)variable_to_numerical(rhs));
+            variable_t *new_operand = variable_numerical_new(&operand_value);
+            if (storage_hash_table != NULL) {
+                g_hash_table_insert(storage_hash_table, identifier, new_operand);
+            } else {
+                activation_record_insert(AR_Parent, identifier, new_operand);
+            }
+
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = new_operand;
+            return return_struct;
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_ADD_ASSIGNMENT) {
+            // TODO: check existence
+            variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_variable;
+            variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_variable;
+            if ((lhs->variable_type == VARIABLE_NUMERICAL
+                 || lhs->variable_type == VARIABLE_NULL
+                 || lhs->variable_type == VARIABLE_BOOL)
+                && (rhs->variable_type == VARIABLE_NUMERICAL
+                    || rhs->variable_type == VARIABLE_NULL
+                    || rhs->variable_type == VARIABLE_BOOL)) {
+                gdouble operand_value = variable_to_numerical(lhs) + variable_to_numerical(rhs);
+                variable_t *new_operand = variable_numerical_new(&operand_value);
+                if (storage_hash_table != NULL) {
+                    g_hash_table_insert(storage_hash_table, identifier, new_operand);
+                } else {
+                    activation_record_insert(AR_Parent, identifier, new_operand);
+                }
+
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = new_operand;
+                return return_struct;
+            } else if (lhs->variable_type == VARIABLE_STRING || rhs->variable_type == VARIABLE_STRING) {
+                gchar *lhs_str = variable_to_string(lhs);
+                gchar *rhs_str = variable_to_string(rhs);
+                strcat(lhs_str, rhs_str);
+                variable_t *new_operand = variable_string_new(lhs_str);
+                if (storage_hash_table != NULL) {
+                    g_hash_table_insert(storage_hash_table, identifier, new_operand);
+                } else {
+                    activation_record_insert(AR_Parent, identifier, new_operand);
+                }
+
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = new_operand;
+                return return_struct;
+            }
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_SUBTRACT_ASSIGNMENT) {
+            // TODO: check existence
+            variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_variable;
+            variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_variable;
+            gdouble operand_value = variable_to_numerical(lhs) - variable_to_numerical(rhs);
+            variable_t *new_operand = variable_numerical_new(&operand_value);
+            if (storage_hash_table != NULL) {
+                g_hash_table_insert(storage_hash_table, identifier, new_operand);
+            } else {
+                activation_record_insert(AR_Parent, identifier, new_operand);
+            }
+
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = new_operand;
+            return return_struct;
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_LEFT_SHIFT_ASSIGNMENT) {
+            // TODO: check existence
+            variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_variable;
+            variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_variable;
+            gdouble operand_value = ((int)variable_to_numerical(lhs)) << ((int)variable_to_numerical(rhs));
+            variable_t *new_operand = variable_numerical_new(&operand_value);
+            if (storage_hash_table != NULL) {
+                g_hash_table_insert(storage_hash_table, identifier, new_operand);
+            } else {
+                activation_record_insert(AR_Parent, identifier, new_operand);
+            }
+
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = new_operand;
+            return return_struct;
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_SIGNED_RIGHT_SHIFT_ASSIGNMENT) {
+            // TODO: check existence
+            variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_variable;
+            variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_variable;
+            gdouble operand_value = ((int)variable_to_numerical(lhs)) >> ((int)variable_to_numerical(rhs));
+            variable_t *new_operand = variable_numerical_new(&operand_value);
+            if (storage_hash_table != NULL) {
+                g_hash_table_insert(storage_hash_table, identifier, new_operand);
+            } else {
+                activation_record_insert(AR_Parent, identifier, new_operand);
+            }
+
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = new_operand;
+            return return_struct;
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_UNSIGNED_RIGHT_SHIFT_ASSIGNMENT) {
+            // TODO: check existence
+            variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_variable;
+            variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_variable;
+            gdouble operand_value = ((gint64)variable_to_numerical(lhs)) >> ((int)variable_to_numerical(rhs));
+            if (operand_value < 0) {
+                operand_value = ((gint64)(2147483648ll * 2 + variable_to_numerical(lhs))) >> ((int)variable_to_numerical(rhs));
+            }
+            variable_t *new_operand = variable_numerical_new(&operand_value);
+            if (storage_hash_table != NULL) {
+                g_hash_table_insert(storage_hash_table, identifier, new_operand);
+            } else {
+                activation_record_insert(AR_Parent, identifier, new_operand);
+            }
+
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = new_operand;
+            return return_struct;
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_BITWISE_AND_ASSIGNMENT) {
+            // TODO: check existence
+            variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_variable;
+            variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_variable;
+            gdouble operand_value = ((int)variable_to_numerical(lhs)) & ((int)variable_to_numerical(rhs));
+            variable_t *new_operand = variable_numerical_new(&operand_value);
+            if (storage_hash_table != NULL) {
+                g_hash_table_insert(storage_hash_table, identifier, new_operand);
+            } else {
+                activation_record_insert(AR_Parent, identifier, new_operand);
+            }
+
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = new_operand;
+            return return_struct;
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_BITWISE_XOR_ASSIGNMENT) {
+            // TODO: check existence
+            variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_variable;
+            variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_variable;
+            gdouble operand_value = ((int)variable_to_numerical(lhs)) ^ ((int)variable_to_numerical(rhs));
+            variable_t *new_operand = variable_numerical_new(&operand_value);
+            if (storage_hash_table != NULL) {
+                g_hash_table_insert(storage_hash_table, identifier, new_operand);
+            } else {
+                activation_record_insert(AR_Parent, identifier, new_operand);
+            }
+
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = new_operand;
+            return return_struct;
+        } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_BITWISE_OR_ASSIGNMENT) {
+            // TODO: check existence
+            variable_t *lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent)->mid_variable;
+            variable_t *rhs = evaluate_token(token_get_child(expression_token, 2), AR_Parent)->mid_variable;
+            gdouble operand_value = ((int)variable_to_numerical(lhs)) | ((int)variable_to_numerical(rhs));
+            variable_t *new_operand = variable_numerical_new(&operand_value);
+            if (storage_hash_table != NULL) {
+                g_hash_table_insert(storage_hash_table, identifier, new_operand);
+            } else {
+                activation_record_insert(AR_Parent, identifier, new_operand);
+            }
+
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = new_operand;
+            return return_struct;
+        }
     } else if (expression_token->id == TOKEN_EXPRESSION_CONDITIONAL_EXPRESSION) {
         token_t *condition_token = token_get_child(expression_token, 0);
         token_t *true_token = token_get_child(expression_token, 1);
@@ -876,7 +1067,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
             } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_UNSIGNED_RIGHT_SHIFT) {
                 result = lhs_value_int >> rhs_value_int;
                 if (result<0) {
-                    result = 2147483647 + result + 1;
+                    result = ((gint64)(2147483648ll * 2 + variable_to_numerical(lhs))) >> ((int)variable_to_numerical(rhs));
                 }
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_numerical_new(&result);
