@@ -11,6 +11,7 @@
 
 #define TO_STRING_LEN 255
 #define INTEGER_THRESHOLD 0.001
+#define ZERO_THRESHOLD 0.00000001
 
 typedef enum {
     VARIABLE_UNDEFINED,
@@ -47,6 +48,7 @@ void        variable_free           (variable_t *variable);
 
 gchar*      variable_to_string      (variable_t *variable);
 gdouble     variable_to_numerical   (variable_t *variable);
+gboolean    variable_to_bool        (variable_t *variable);
 
 gboolean    variable_object_insert  (variable_t *object_variable, token_t *key, variable_t *value);
 variable_t  *variable_object_lookup (variable_t *object_variable, token_t *key);

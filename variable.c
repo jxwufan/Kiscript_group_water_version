@@ -90,6 +90,37 @@ gchar* variable_to_string(variable_t *variable) {
     return str;
 }
 
+gboolean variable_to_bool(variable_t *variable) {
+    gboolean bool_val = FALSE;
+    if (variable->variable_type == VARIABLE_NUMERICAL) {
+        gdouble tmp_double = *((gdouble*) variable->variable_data);
+        if (fabs(tmp_double - 0) < ZERO_THRESHOLD) {
+            bool_val = TRUE;
+        } else {
+            bool_val = FALSE;
+        }
+    } else if (variable->variable_type == VARIABLE_STRING) {
+        gdouble tmp_double = variable_to_numerical(variable);
+        if (fabs(tmp_double - 0) < ZERO_THRESHOLD) {
+            bool_val = TRUE;
+        } else {
+            bool_val = FALSE;
+        }
+    } else if (variable->variable_type == VARIABLE_BOOL) {
+        bool_val = *((gboolean*) variable->variable_data);
+    } else if (variable->variable_type == VARIABLE_OBJECT) {
+        //TODO
+    } else if (variable->variable_type == VARIABLE_FUNC) {
+        //TODO
+    } else if (variable->variable_type == VARIABLE_UNDEFINED) {
+        //TODO
+    } else if (variable->variable_type == VARIABLE_NULL) {
+        //TODO
+    }
+
+    return bool_val;
+}
+
 gdouble variable_to_numerical(variable_t *variable) {
     gdouble return_value = NAN;
     if (variable->variable_type == VARIABLE_STRING) {
