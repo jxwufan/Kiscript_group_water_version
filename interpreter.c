@@ -166,6 +166,12 @@ return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *
 
         return return_struct;
     } else if (lexical_token->id == TOKEN_LEXICAL_IDENTIFIER) {
+        if (strcmp(identifier_get_value(lexical_token)->str,"undefined")==0) {
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = variable_undefined_new();
+            return return_struct;
+        }
+
         return_struct->mid_variable = activation_record_lookup(AR_Parent, identifier_get_value(lexical_token)->str);
         if (return_struct->mid_variable != NULL) {
             return_struct->status = STAUS_NORMAL;
@@ -1083,22 +1089,14 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
         if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_EQUALS) {
-            token_t *left_token = token_get_child(expression_token, 0);
-            token_t *right_token = token_get_child(expression_token, 2);
-            if (left_token->id == TOKEN_LEXICAL_IDENTIFIER
-                    && strcmp("undefined", identifier_get_value(left_token)->str) == 0
-                    && right_token->id == TOKEN_LEXICAL_IDENTIFIER
-                    && strcmp("undefined", identifier_get_value(right_token)->str) == 0) {
-                gboolean result = TRUE;
-                return_struct->status = STAUS_NORMAL;
-                return_struct->mid_variable = variable_bool_new(&result);
-                return return_struct;
-            } else if ((lhs->variable_type == VARIABLE_NUMERICAL
+             if ((lhs->variable_type == VARIABLE_NUMERICAL
                     || lhs->variable_type == VARIABLE_STRING
-                    || lhs->variable_type == VARIABLE_BOOL)
+                    || lhs->variable_type == VARIABLE_BOOL
+                    || lhs->variable_type == VARIABLE_UNDEFINED)
                 && (rhs->variable_type == VARIABLE_NUMERICAL
                     || rhs->variable_type == VARIABLE_STRING
-                    || rhs->variable_type == VARIABLE_BOOL)) {
+                    || rhs->variable_type == VARIABLE_BOOL
+                    || rhs->variable_type == VARIABLE_UNDEFINED)) {
                 gchar* lhs_str = variable_to_string(lhs);
                 gchar* rhs_str = variable_to_string(rhs);
                 gboolean result;
@@ -1116,10 +1114,12 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_DOES_NOT_EQUAL) {
             if ((lhs->variable_type == VARIABLE_NUMERICAL
                  || lhs->variable_type == VARIABLE_STRING
-                 || lhs->variable_type == VARIABLE_BOOL)
+                 || lhs->variable_type == VARIABLE_BOOL
+                 || lhs->variable_type == VARIABLE_UNDEFINED)
                 && (rhs->variable_type == VARIABLE_NUMERICAL
                     || rhs->variable_type == VARIABLE_STRING
-                    || rhs->variable_type == VARIABLE_BOOL)) {
+                    || rhs->variable_type == VARIABLE_BOOL
+                    || rhs->variable_type == VARIABLE_UNDEFINED)) {
                 gchar* lhs_str = variable_to_string(lhs);
                 gchar* rhs_str = variable_to_string(rhs);
                 gboolean result;
@@ -1137,10 +1137,12 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_STRICT_EQUALS) {
             if ((lhs->variable_type == VARIABLE_NUMERICAL
                  || lhs->variable_type == VARIABLE_STRING
-                 || lhs->variable_type == VARIABLE_BOOL)
+                 || lhs->variable_type == VARIABLE_BOOL
+                 || lhs->variable_type == VARIABLE_UNDEFINED)
                 && (rhs->variable_type == VARIABLE_NUMERICAL
                     || rhs->variable_type == VARIABLE_STRING
-                    || rhs->variable_type == VARIABLE_BOOL)
+                    || rhs->variable_type == VARIABLE_BOOL
+                    || rhs->variable_type == VARIABLE_UNDEFINED)
                 && lhs->variable_type == rhs->variable_type) {
                 gchar* lhs_str = variable_to_string(lhs);
                 gchar* rhs_str = variable_to_string(rhs);
@@ -1159,10 +1161,12 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_STRICT_DOES_NOT_EQUAL) {
             if ((lhs->variable_type == VARIABLE_NUMERICAL
                  || lhs->variable_type == VARIABLE_STRING
-                 || lhs->variable_type == VARIABLE_BOOL)
+                 || lhs->variable_type == VARIABLE_BOOL
+                 || lhs->variable_type == VARIABLE_UNDEFINED)
                 && (rhs->variable_type == VARIABLE_NUMERICAL
                     || rhs->variable_type == VARIABLE_STRING
-                    || rhs->variable_type == VARIABLE_BOOL)) {
+                    || rhs->variable_type == VARIABLE_BOOL
+                    || rhs->variable_type == VARIABLE_UNDEFINED)) {
                 gchar* lhs_str = variable_to_string(lhs);
                 gchar* rhs_str = variable_to_string(rhs);
                 gboolean result;
@@ -1429,6 +1433,13 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_bool_new(&result);
                 return return_struct;
+            } else if (lhs->variable_type == VARIABLE_UNDEFINED
+                       && rhs->variable_type == VARIABLE_UNDEFINED)
+            {
+                gboolean result = FALSE;
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
             }
         } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_ANGLE_BRACKET_RIGHT) {
             if (lhs->variable_type == VARIABLE_STRING
@@ -1462,6 +1473,13 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                     result = FALSE;
                 }
 
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
+            } else if (lhs->variable_type == VARIABLE_UNDEFINED
+                      && rhs->variable_type == VARIABLE_UNDEFINED)
+            {
+                gboolean result = FALSE;
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_bool_new(&result);
                 return return_struct;
@@ -1501,6 +1519,13 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_bool_new(&result);
                 return return_struct;
+            } else if (lhs->variable_type == VARIABLE_UNDEFINED
+                       && rhs->variable_type == VARIABLE_UNDEFINED)
+            {
+                gboolean result = FALSE;
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
             }
         } else if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_GREATER_THAN_OR_EQUAL) {
             if (lhs->variable_type == VARIABLE_STRING
@@ -1537,10 +1562,15 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
                 return_struct->status = STAUS_NORMAL;
                 return_struct->mid_variable = variable_bool_new(&result);
                 return return_struct;
+            } else if (lhs->variable_type == VARIABLE_UNDEFINED
+                       && rhs->variable_type == VARIABLE_UNDEFINED)
+            {
+                gboolean result = FALSE;
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
             }
-        }/* else if (*keyword_get_id(token_get_child(expression_token, 1)) == KEYWORD_INSTANCEOF) {
-
-        }*/
+        }
     } else if (expression_token->id == TOKEN_EXPRESSION_LOGICAL_AND_EXPRESSION) {
         g_assert(expression_token->children->len == 2);
         return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
