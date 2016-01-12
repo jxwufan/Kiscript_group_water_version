@@ -41,9 +41,20 @@ return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) 
 return_struct_t *evaluate_program(token_t *program_token, activation_record_t *AR_parent) {
     return_struct_t *return_struct = return_struct_new();
     activation_record_t *AR = activation_record_new(AR_parent, NULL);
-    AR->static_link = AR;
+    gboolean init_flag = FALSE;
 
-    init_builtin(AR);
+    if (AR_parent != NULL) {
+        init_flag = TRUE;
+    }
+    if (AR_parent == NULL) {
+        AR->static_link = AR;
+    } else {
+        AR = AR_parent;
+    }
+
+    if (!init_flag) {
+        init_builtin(AR);
+    }
 
     for (guint i  = 0; i < program_token->children->len; ++i) {
         return_struct = evaluate_token(token_get_child(program_token, i), AR);
@@ -57,9 +68,13 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
         }
     }
 
-    activation_record_reach_end_of_scope(AR);
+    if (!init_flag) {
+        activation_record_reach_end_of_scope(AR);
+    }
 
-    token_free(&builtin_token);
+    if (!init_flag) {
+        token_free(&builtin_token);
+    }
 
     return_struct->status = STAUS_NORMAL;
     return return_struct;
@@ -582,7 +597,21 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
             return return_struct;
         }
         if (func_token->id == TOKEN_LEXICAL_IDENTIFIER && strcmp("eval", identifier_get_value(func_token)->str) == 0) {
-            return evaluate_eval(string_literal_get_value(token_get_child(token_get_child(expression_token, 1), 0))->str);
+            return evaluate_eval(string_literal_get_value(token_get_child(token_get_child(expression_token, 1), 0))->str, AR_Parent);
+        }
+        if (func_token->id == TOKEN_LEXICAL_IDENTIFIER && strcmp("REPL", identifier_get_value(func_token)->str) == 0) {
+            while (TRUE) {
+                gchar *line = g_malloc(sizeof(gchar) * 300);
+                printf(">>>");
+                fgets(line, 300, stdin);
+                if (strcmp(line, "exit();") == 0) {
+                    break;
+                }
+                evaluate_eval(line, AR_Parent);
+            }
+            return_struct->status = STAUS_NORMAL;
+            return_struct->mid_variable = NULL;
+            return return_struct;
         }
 
         variable_t *callee_variable;
@@ -1641,11 +1670,7 @@ return_struct_t *evaluate_init(token_t *program_token, activation_record_t *AR_p
     return return_struct;
 }
 
-return_struct_t *evaluate_eval(gchar *eval_code) {
-    if (!lexical_parse_normalize_input(&eval_code)) {
-        fprintf(stderr, "lexical_parse_normalize_input: error");
-    }
-
+return_struct_t *evaluate_eval(gchar *eval_code, activation_record_t *AR_parent) {
     token_t *lexical_error = NULL;
     GPtrArray *token_list = lexical_parse(eval_code, &lexical_error);
     if (lexical_error) {
@@ -1664,7 +1689,8 @@ return_struct_t *evaluate_eval(gchar *eval_code) {
         token_free(&program_or_error);
     }
 
-    return_struct_t *return_struct = evaluate_program(program_or_error, NULL);
+    return_struct_t *return_struct = evaluate_program(program_or_error, AR_parent);
     token_free(&program_or_error);
+
     return return_struct;
 }

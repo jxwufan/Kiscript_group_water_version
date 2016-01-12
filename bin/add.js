@@ -1,1 +1,2 @@
-Log(eval("Log(1+1);"));
+var a = 0;
+REPL();
