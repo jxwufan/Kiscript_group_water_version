@@ -213,7 +213,7 @@ token_t *property_assignment_plain(GPtrArray *input, gsize *position_p) {
             ERROR_EXPRESSION_PROPERTY_ASSIGNMENT_PLAIN_COLON)
 
     tokenize_and_add_child_or_free_parent_and_return_error(input, position_p,
-            property_name, property_assignment_plain_token)
+            assignment_expression, property_assignment_plain_token)
 
     return property_assignment_plain_token;
 }
