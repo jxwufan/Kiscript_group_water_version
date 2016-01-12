@@ -1083,7 +1083,17 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         variable_t *rhs = return_struct_rhs->mid_variable;
         // TODO: check return status
         if (*punctuator_get_id(token_get_child(expression_token, 1)) == PUNCTUATOR_EQUALS) {
-            if ((lhs->variable_type == VARIABLE_NUMERICAL
+            token_t *left_token = token_get_child(expression_token, 0);
+            token_t *right_token = token_get_child(expression_token, 2);
+            if (left_token->id == TOKEN_LEXICAL_IDENTIFIER
+                    && strcmp("undefined", identifier_get_value(left_token)->str) == 0
+                    && right_token->id == TOKEN_LEXICAL_IDENTIFIER
+                    && strcmp("undefined", identifier_get_value(right_token)->str) == 0) {
+                gboolean result = TRUE;
+                return_struct->status = STAUS_NORMAL;
+                return_struct->mid_variable = variable_bool_new(&result);
+                return return_struct;
+            } else if ((lhs->variable_type == VARIABLE_NUMERICAL
                     || lhs->variable_type == VARIABLE_STRING
                     || lhs->variable_type == VARIABLE_BOOL)
                 && (rhs->variable_type == VARIABLE_NUMERICAL
