@@ -116,6 +116,7 @@ gboolean is_expression(token_t *token) {
            token->id == TOKEN_EXPRESSION_UNARY_EXPRESSION                ||
            token->id == TOKEN_EXPRESSION_POSTFIX_EXPRESSION              ||
            token->id == TOKEN_EXPRESSION_RELATIONAL_EXPRESSION           ||
+           token->id == TOKEN_EXPRESSION_CONDITIONAL_EXPRESSION          ||
            token->id == TOKEN_EXPRESSION_LOGICAL_AND_EXPRESSION          ||
            token->id == TOKEN_EXPRESSION_LOGICAL_OR_EXPRESSION           ||
            token->id == TOKEN_EXPRESSION_BITWISE_AND_EXPRESSION          ||
@@ -484,6 +485,29 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return_struct->status = STAUS_NORMAL;
         return_struct->mid_variable = return_struct_rhs->mid_variable;
         return return_struct;
+    } else if (expression_token->id == TOKEN_EXPRESSION_CONDITIONAL_EXPRESSION) {
+        token_t *condition_token = token_get_child(expression_token, 0);
+        token_t *true_token = token_get_child(expression_token, 1);
+        token_t *false_token = token_get_child(expression_token, 2);
+
+        return_struct = evaluate_token(condition_token, AR_Parent);
+
+        if (return_struct->status != STAUS_NORMAL) {
+            return return_struct;
+        }
+        if (return_struct->mid_variable->variable_type != VARIABLE_BOOL) {
+            return_struct->status = STAUS_THROW;
+            // TODO: exception
+            exit(-1);
+        }
+        gboolean *condition = return_struct->mid_variable->variable_data;
+
+        if (*condition) {
+            return evaluate_token(true_token, AR_Parent);
+        } else {
+            return evaluate_token(false_token, AR_Parent);
+        }
+
     } else if (expression_token->id == TOKEN_EXPRESSION_NEW_EXPRESSION) {
         variable_t *constructor;
         variable_t *new_object_variable = variable_object_new();
