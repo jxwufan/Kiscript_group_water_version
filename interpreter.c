@@ -474,6 +474,9 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 //        printf("assignment rhs: %s\n", variable_to_string(return_struct_rhs->mid_variable));
         if (storage_hash_table != NULL) {
             g_hash_table_insert(storage_hash_table, identifier, return_struct_rhs->mid_variable);
+            if (return_struct_rhs->mid_variable->variable_type == VARIABLE_OBJECT || return_struct_rhs->mid_variable->variable_type == VARIABLE_FUNC) {
+                g_hash_table_ref(return_struct_rhs->mid_variable->variable_data);
+            }
         } else {
             activation_record_insert(AR_Parent, identifier, return_struct_rhs->mid_variable);
         }
@@ -540,7 +543,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         g_hash_table_insert(new_object_variable->variable_data, "__proto__", g_hash_table_lookup(constructor->variable_data, "prototype"));
         g_hash_table_ref(((variable_t *) g_hash_table_lookup(constructor->variable_data, "prototype"))->variable_data);
         g_hash_table_insert(new_object_variable->variable_data, "constructor", constructor);
-        g_hmac_ref(constructor->variable_data);
+        g_hash_table_ref(constructor->variable_data);
         return_struct->status = STAUS_NORMAL;
         return_struct->mid_variable = new_object_variable;
 
@@ -597,6 +600,13 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
 
             sprintf(index_str, "%d", i);
             g_hash_table_insert(arguments->variable_data, index_str, return_struct->mid_variable);
+            if (return_struct->mid_variable->variable_type == VARIABLE_FUNC || return_struct->mid_variable->variable_type == VARIABLE_OBJECT) {
+                if (return_struct->mid_variable->new_flag) {
+                    return_struct->mid_variable->new_flag = FALSE;
+                } else {
+                    g_hash_table_ref(return_struct->mid_variable->variable_data);
+                }
+            }
         }
         activation_record_declare(AR, "arguments");
         activation_record_insert(AR, "arguments", arguments);
@@ -646,6 +656,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         *array_length = expression_token->children->len;
         g_hash_table_insert(array_varialbe->variable_data, "length", variable_numerical_new(array_length));
         g_hash_table_insert(array_varialbe->variable_data, "__proto__", Array_prototype);
+        g_hash_table_ref(Array_prototype->variable_data);
 
         for (guint i = 0; i < expression_token->children->len; ++i) {
             gchar *index_str = GC_malloc(sizeof(gchar) * 10);
@@ -658,6 +669,13 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
             }
 
             g_hash_table_insert(array_varialbe->variable_data, index_str, return_struct->mid_variable);
+            if (return_struct->mid_variable->variable_type == VARIABLE_FUNC || return_struct->mid_variable->variable_type == VARIABLE_OBJECT) {
+                if (return_struct->mid_variable->new_flag) {
+                    return_struct->mid_variable->new_flag = FALSE;
+                } else {
+                    g_hash_table_ref(return_struct->mid_variable->variable_data);
+                }
+            }
         }
 
         return_struct->status = STAUS_NORMAL;
