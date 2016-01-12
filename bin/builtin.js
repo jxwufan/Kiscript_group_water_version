@@ -7,6 +7,8 @@ Object.create = function(proto) {
     return new_obj;
 };
 
+var undefined = Object.fm;
+
 function Function() {
 }
 
@@ -17,8 +19,12 @@ Function.call = function(init_this) {
     init_this.constructor = tmp;
 };
 
-function Array() {
-    this.length = 0;
+function Array(length) {
+    if (length == undefined) {
+        this.length = 0;
+    } else {
+        this.length = length;
+    }
 }
 
 Array.prototype.append = function(item) {
