@@ -44,13 +44,13 @@ gboolean activation_record_insert(activation_record_t *AR, gchar *key, gpointer 
     }
 
     while (current_AR != NULL) {
-        if (g_hash_table_contains(current_AR->AR_hash_table, key)) {
+        if (g_hash_table_contains(current_AR->AR_hash_table, key) == TRUE) {
             return g_hash_table_insert(current_AR->AR_hash_table, key, value);
         } else {
             current_AR = current_AR->dynamic_link;
         }
     }
-//    printf("get NULL!\n");
+
     if (current_AR == NULL) {
         activation_record_declare(AR->static_link, key);
         return activation_record_insert(AR->static_link, key, value);

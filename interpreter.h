@@ -53,6 +53,6 @@ variable_t *generate_function_variable (token_t *function_token, activation_reco
 variable_t *Object, *Objcet_prototype;
 variable_t *Array, *Array_prototype;
 variable_t *Function, *Function_prototype;
-token_t    *builtin_token;
+GList      *data_tokens_list;
 
 #endif //KISCRIPT_INTERPRETER_H

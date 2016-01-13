@@ -40,21 +40,9 @@ return_struct_t *evaluate_token(token_t *token, activation_record_t *AR_parent) 
 
 return_struct_t *evaluate_program(token_t *program_token, activation_record_t *AR_parent) {
     return_struct_t *return_struct = return_struct_new();
-    activation_record_t *AR = activation_record_new(AR_parent, NULL);
-    gboolean init_flag = FALSE;
-
-    if (AR_parent != NULL) {
-        init_flag = TRUE;
-    }
-    if (AR_parent == NULL) {
-        AR->static_link = AR;
-    } else {
-        AR = AR_parent;
-    }
-
-    if (!init_flag) {
-        init_builtin(AR);
-    }
+    activation_record_t *AR = activation_record_new(NULL, NULL);
+    AR->static_link = AR;
+    data_tokens_list = NULL;
 
     for (guint i  = 0; i < program_token->children->len; ++i) {
         return_struct = evaluate_token(token_get_child(program_token, i), AR);
@@ -68,12 +56,30 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
         }
     }
 
-    if (!init_flag) {
-        activation_record_reach_end_of_scope(AR);
+    activation_record_reach_end_of_scope(AR);
+
+    while (data_tokens_list != NULL) {
+        token_free((token_t**)&(data_tokens_list->data));
     }
 
-    if (!init_flag) {
-        token_free(&builtin_token);
+    return_struct->status = STAUS_NORMAL;
+    return return_struct;
+}
+
+return_struct_t *evaluate_eval_call(token_t *program_token, activation_record_t *AR_parent) {
+    return_struct_t *return_struct = return_struct_new();
+    activation_record_t *AR = AR_parent;
+
+    for (guint i  = 0; i < program_token->children->len; ++i) {
+        return_struct = evaluate_token(token_get_child(program_token, i), AR);
+        if (return_struct->mid_variable != NULL) {
+//            printf("mid: %s ", variable_to_string(return_struct->mid_variable));
+        }
+        if (return_struct->end_variable != NULL) {
+//            printf("end: %s\n", variable_to_string(return_struct->end_variable));
+        } else {
+//            printf("\n");
+        }
     }
 
     return_struct->status = STAUS_NORMAL;
@@ -178,6 +184,7 @@ return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *
         } else {
             return_struct->status = STAUS_THROW;
             // TODO: return exception
+            printf("%lu\n", strlen(identifier_get_value(lexical_token)->str));
             printf("No varialbe named %s\n", identifier_get_value(lexical_token)->str);
             exit(-1);
         }
@@ -1922,7 +1929,7 @@ void init_builtin(activation_record_t *AR) {
 
     evaluate_init(program_or_error, AR);
 
-    builtin_token = program_or_error;
+    data_tokens_list = g_list_append(data_tokens_list, program_or_error);
 
     Object      = activation_record_lookup(AR, "Object");
     Function    = activation_record_lookup(AR, "Function");
@@ -1995,8 +2002,8 @@ return_struct_t *evaluate_eval(gchar *eval_code, activation_record_t *AR_parent)
         token_free(&program_or_error);
     }
 
-    return_struct_t *return_struct = evaluate_program(program_or_error, AR_parent);
-    token_free(&program_or_error);
+    return_struct_t *return_struct = evaluate_eval_call(program_or_error, AR_parent);
+    data_tokens_list = g_list_append(data_tokens_list, program_or_error);
 
     return return_struct;
 }
