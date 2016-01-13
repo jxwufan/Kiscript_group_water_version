@@ -42,6 +42,8 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
     return_struct_t *return_struct = return_struct_new();
     activation_record_t *AR = activation_record_new(NULL, NULL);
     AR->static_link = AR;
+    init_builtin(AR);
+
     data_tokens_list = NULL;
 
     for (guint i  = 0; i < program_token->children->len; ++i) {
@@ -189,7 +191,6 @@ return_struct_t *evaluate_lexicial(token_t *lexical_token, activation_record_t *
         } else {
             return_struct->status = STAUS_THROW;
             // TODO: return exception
-            printf("%lu\n", strlen(identifier_get_value(lexical_token)->str));
             printf("No varialbe named %s\n", identifier_get_value(lexical_token)->str);
             exit(-1);
         }
@@ -974,7 +975,7 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         if (return_struct_lhs->status == STAUS_NORMAL) {
             g_assert(return_struct_lhs->mid_variable->variable_type == VARIABLE_OBJECT || return_struct_lhs->mid_variable->variable_type == VARIABLE_FUNC );
 
-            return_struct->mid_variable = variable_object_lookup(return_struct_lhs->mid_variable, token_get_child(expression_token, 1));
+            return_struct->mid_variable = variable_object_lookup(return_struct_lhs->mid_variable, token_get_child(expression_token, 1), AR_parent);
             if (return_struct->mid_variable != NULL) {
                 return_struct->status = STAUS_NORMAL;
                 return_struct->end_variable = return_struct_lhs->mid_variable;

@@ -265,11 +265,11 @@ gboolean variable_object_insert(variable_t *object_variable, token_t *key, varia
     return FALSE;
 }
 
-variable_t *variable_object_lookup(variable_t *object_variable, token_t *key) {
+variable_t *variable_object_lookup(variable_t *object_variable, token_t *key, activation_record_t *AR_parent) {
     g_assert(object_variable->variable_type == VARIABLE_OBJECT || object_variable->variable_type == VARIABLE_FUNC);
 
     if (key->id != TOKEN_LEXICAL_IDENTIFIER) {
-        return_struct_t *return_struct_variable_key = evaluate_token(key, NULL);
+        return_struct_t *return_struct_variable_key = evaluate_token(key, AR_parent);
 
         if (return_struct_variable_key->status == STAUS_NORMAL) {
             // TODO: to string may cause  exception

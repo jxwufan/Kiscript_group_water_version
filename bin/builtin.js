@@ -39,3 +39,16 @@ function substr(str, start, end) {
     return ret;
 }
 
+function split(str, spliter) {
+    var last = 0;
+    var result = new Array(0);
+    for (var i = 0; i < str.length; ++i) {
+        if (str[i] == spliter) {
+            result.append(substr(str, last, i));
+            last = i + 1;
+        }
+    }
+    result.append(substr(str, last, str.length));
+    return result;
+}
+
