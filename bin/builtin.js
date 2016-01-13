@@ -31,3 +31,11 @@ Array.prototype.append = function(item) {
     this[this.length++] = item;
 };
 
+function substr(str, start, end) {
+    var ret = "";
+    for (var i = start; i < end; i++) {
+        ret += str[i];
+    }
+    return ret;
+}
+
