@@ -44,11 +44,15 @@ function split(str, spliter) {
     var result = new Array(0);
     for (var i = 0; i < str.length; ++i) {
         if (str[i] == spliter) {
-            result.append(substr(str, last, i));
+            if (last != i) {
+                result.append(substr(str, last, i));
+            }
             last = i + 1;
         }
     }
-    result.append(substr(str, last, str.length));
+    if (last != str.length) {
+        result.append(substr(str, last, str.length));
+    }
     return result;
 }
 
