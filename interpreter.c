@@ -58,9 +58,14 @@ return_struct_t *evaluate_program(token_t *program_token, activation_record_t *A
 
     activation_record_reach_end_of_scope(AR);
 
+    GList *list = data_tokens_list;
+
     while (data_tokens_list != NULL) {
         token_free((token_t**)&(data_tokens_list->data));
+        data_tokens_list = data_tokens_list->next;
     }
+
+    g_list_free(list);
 
     return_struct->status = STAUS_NORMAL;
     return return_struct;
