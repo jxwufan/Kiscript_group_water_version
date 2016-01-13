@@ -883,6 +883,13 @@ return_struct_t *evaluate_expression(token_t *expression_token, activation_recor
         return return_struct;
     } else if (expression_token->id == TOKEN_EXPRESSION_PROPERTY_ACCESSOR) {
         return_struct_t *return_struct_lhs = evaluate_token(token_get_child(expression_token, 0), AR_Parent);
+        if (return_struct_lhs->mid_variable->variable_type == VARIABLE_STRING
+            && strcmp(identifier_get_value(token_get_child(expression_token, 1))->str,"length")==0) {
+            return_struct->status = STAUS_NORMAL;
+            gdouble len = strlen(variable_to_string(return_struct_lhs->mid_variable));
+            return_struct->mid_variable = variable_numerical_new(&len);
+            return return_struct;
+        }
 
         if (return_struct_lhs->status == STAUS_NORMAL) {
             g_assert(return_struct_lhs->mid_variable->variable_type == VARIABLE_OBJECT || return_struct_lhs->mid_variable->variable_type == VARIABLE_FUNC );

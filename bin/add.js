@@ -54,3 +54,8 @@
 
 var a = new Array(5);
 Log(a.length);
+
+Log(undefined <= undefined);
+Log("1234".length);
+s="String";
+Log(s.length);
